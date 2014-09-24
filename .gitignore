@@ -1,0 +1,5 @@
+_build/
+logic.dko
+verine
+examples/*.proof
+examples/*.dk
