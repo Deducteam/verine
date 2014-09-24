@@ -1,0 +1,19 @@
+#+Title: Comments
+
+* veriT
+ - x = y est transformé par veriT en y = x
+
+* verine: à faire
+ - créer les .mli
+ - adapter les règles à des clauses à plusieurs éléments
+ - adapter les règles sur l'égalité pour des termes permutés
+ - simplifier si possible translate_rule
+
+* verine: commmentaires
+ - on suppose que la conclusion de l'input contient toutes les variables libres de la preuve
+ - l'environnement est composé de couples de la forme 
+   (prf (mk_clause dkinputs => mk_clause dkconcs), dkconcs)
+
+* verine : pour plus tard
+ - garder n dans translate_rule ?
+ - utiliser des axiomes pour les règles non identifiées ?
