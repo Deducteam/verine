@@ -1,0 +1,24 @@
+#NAME logic.
+Term : Type.
+Prop: Type.
+prf: Prop -> Type.
+
+not: Prop -> Prop.
+True: Prop.
+False: Prop.
+and: Prop -> Prop -> Prop.
+or: Prop -> Prop -> Prop.
+imply: Prop -> Prop -> Prop.
+forall: (Term -> Prop) -> Prop.
+exists: (Term -> Prop) -> Prop.
+equal: Term -> Term -> Prop.
+
+[] prf True --> P: Prop -> (prf P -> prf P)
+[] prf False --> P: Prop -> prf P
+[A: Prop, B: Prop] prf (and A B) --> P: Prop -> (prf A -> prf B -> prf P) -> prf P
+[A: Prop, B: Prop] prf (or A B) --> P: Prop -> (prf A -> prf P) -> (prf B -> prf P) -> prf P
+[A: Prop, B: Prop] prf (imply A B) --> prf A -> prf B
+[A: Prop] prf (not A) --> prf A -> prf False
+[A: Term -> Prop] prf (forall A) --> x: Term -> prf (A x)
+[A: Term -> Prop] prf (exists A) --> P: Prop -> (x: Term -> prf (A x) -> prf P) -> prf P
+[x: Term, y: Term] prf (equal x y) --> P:(Term -> Prop) -> prf (imply (P x) (P y)).
