@@ -25,7 +25,7 @@ let parse_and_run out lexbuf filename=
     let (s, l, c) = Global.loc_err lexbuf in
     raise (Global.ParserError (s, l, c))
   | Global.FoundRuleError ->
-    let l = Global.loc_err_line lexbuf in
+    let (_, l, _) = Global.loc_err lexbuf in
     raise (Global.RuleError l)
     
 

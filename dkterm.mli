@@ -1,4 +1,4 @@
-open Printf
+(* AST corresponding to a Dedukti output *)
 
 type dkvar = string
 
@@ -21,6 +21,7 @@ type dkline = private
   | Dkdeftype of dkvar * dkterm * dkterm
   | Dkprelude of string
 
+(* constructor functions *)
 val mk_var : dkvar -> dkterm
 val mk_lam : dkvar -> dkterm -> dkterm -> dkterm
 val mk_app : dkterm list -> dkterm
@@ -40,8 +41,8 @@ val mk_decl : dkvar -> dkterm -> dkline
 val mk_deftype : dkvar -> dkterm -> dkterm -> dkline
 val mk_prelude : string -> dkline
 
+(* print functions *)
 val p_var : out_channel -> dkvar -> unit
 val p_term : out_channel -> dkterm -> unit
-val p_term_p : out_channel -> dkterm -> unit
 val p_terms : out_channel -> dkterm list -> unit
 val p_line : out_channel -> dkline -> unit
