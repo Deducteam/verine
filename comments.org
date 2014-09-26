@@ -7,9 +7,18 @@
  - adapter les règles à des clauses à plusieurs éléments
  - adapter les règles sur l'égalité pour des termes permutés
  - simplifier si possible translate_rule
+ - changer dklam en dkterm * dkterm * dkterm
+ - remplacer mk_app ts par mk_app t ts
+ - enlever mk_abs, remplacer mk_str par mk_newvars ?
+ - ajouter mk_lams ?
+ - enlever la récursivité de translate_rule ?
 
 * verine: commmentaires
  - on suppose que la conclusion de l'input contient toutes les variables libres de la preuve
+ - on suppose que l'ordre des propositions est conservé dans les clauses
+ - on suppose dans une résolution c1 c2 ... cn que pour tout i, 
+   il n'existe qu'une seule proposition p telle que 
+   p est dans ci et non p est dans c(i+1) ou inversement
 
 * verine : pour plus tard
  - garder n dans translate_rule ?

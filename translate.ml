@@ -24,7 +24,37 @@ let rec mk_clause props =
   match props with
   | p :: ps -> mk_imply (mk_not p) (mk_clause ps)
   | [] -> mk_false
-    
+
+let mk_str types n =
+  let vars, newn = 
+    List.fold_left (fun (l,n) t -> 
+      (("H"^(string_of_int n)) :: l), n+1 ) ([],n) types in
+  List.rev vars, newn
+
+let mk_abs vars types f =
+  List.fold_left2 (fun term var t -> mk_lam var t term) 
+    (f (List.map mk_var vars)) (List.rev vars) (List.rev types) 
+
+exception NotFound
+
+let rec find_prop_resolution p1s p2s =
+  match p1s, p2s with
+  | (Dkapp [Dknot; p]) :: p1s, p2 :: p2s when (p = p2) ->
+    true, p, [], p1s, [], p2s
+  | p1 :: p1s, (Dkapp [Dknot; p]) :: p2s when (p = p1) ->
+    false, p, [], p1s, [], p2s
+  | p1 :: p1s, p2 :: p2s ->
+    begin 
+      try 
+	let b, p, p1h, p1t, p2h, p2t = find_prop_resolution p1s (p2 :: p2s) in
+	b, p, p1 :: p1h, p1t, p2h, p2t
+      with
+      | NotFound -> 
+	let b, p, p1h, p1t, p2h, p2t = find_prop_resolution (p1 :: p1s) p2s in
+	b, p, p1h, p1t, p2 :: p2h, p2t	
+    end
+  | _, _ -> raise NotFound
+
 (* translate_proof *)
     
 let translate_term term =
@@ -39,7 +69,33 @@ let rec translate_prop prop =
   | Imply (p, q) -> mk_imply (translate_prop p) (translate_prop q)
   | False -> mk_false
 
-let translate_rule rule hyps concs env n = 
+let translate_resolution (prf1, p1s) (prf2, p2s) n =
+  let order, p, p1h, p1t, p2h, p2t = find_prop_resolution p1s p2s in
+  let t = mk_prf (mk_not p) in
+  let t1h = List.map (fun p -> mk_prf (mk_not p)) p1h in
+  let t1t = List.map (fun p -> mk_prf (mk_not p)) p1t in
+  let t2h = List.map (fun p -> mk_prf (mk_not p)) p2h in
+  let t2t = List.map (fun p -> mk_prf (mk_not p)) p2t in
+  let s = "H"^(string_of_int n) in
+  let s1h, n1 = mk_str t1h (n+1) in
+  let s1t, n2 = mk_str t1t n1 in
+  let s2h, n3 = mk_str t2h n2 in
+  let s2t, newn = mk_str t2t n3 in
+  let fprf v1h v1t v2h v2t = 
+    match order, v1t, v2t with
+    | true, _, [] -> mk_app (prf1 :: (v1h @ [mk_app (prf2 :: v2h)] @ v1t))
+    | true, _, _ -> 
+      mk_app (prf1 :: (v1h @ [mk_lam s t (mk_app (prf2 :: (v2h @ [mk_var s] @ v2t)))] @ v1t))
+    | false, [], _ -> mk_app (prf2 :: (v2h @ [mk_app (prf1 :: v1h)] @ v2t))
+    | false, _, _ -> 
+      mk_app (prf2 :: (v2h @ [mk_lam s t (mk_app (prf1 :: (v1h @ [mk_var s] @ v1t)))] @ v2t)) in
+  mk_abs s1h t1h (fun v1h -> 
+    mk_abs s1t t1t (fun v1t ->
+      mk_abs s2h t2h (fun v2h -> 
+	mk_abs s2t t2t (fun v2t -> 
+	  fprf v1h v1t v2h v2t)))), p1h@p1t@p2h@p2t, newn
+
+let rec translate_rule rule hyps concs env n = 
   match rule, hyps, concs with
   | Input, _,  _ -> assert false
   | Eq_reflexive, [], [Dkapp [Dkeq; t; u] as conc] -> 
@@ -52,9 +108,9 @@ let translate_rule rule hyps concs env n =
 	   (mk_var h)) in
     mk_dblneg prf conc (n+2)
   | Eq_transitive, [], 
-    [Dkapp [Dknot; Dkapp [Dkeq; t1; u1] as c1]; 
-     Dkapp [Dknot; Dkapp [Dkeq; t2; u2] as c2]; 
-     Dkapp [Dkeq; t3; u3] as c3] ->
+    [Dkapp [Dknot; Dkapp [Dkeq; t1; u1] as p1]; 
+     Dkapp [Dknot; Dkapp [Dkeq; t2; u2] as p2]; 
+     Dkapp [Dkeq; t3; u3] as p3] ->
     begin match t1, t2, t3, u1, u2, u3 with
     | x, x1, y, y1, z, z1 when (x1 = x && y1 = y && z1 = z) ->
       let h1 = "H"^(string_of_int n) in (*not not x = y*)
@@ -63,24 +119,27 @@ let translate_rule rule hyps concs env n =
       let h4 = "H"^(string_of_int (n+3)) in (*x = y*)
       let h5 = "H"^(string_of_int (n+4)) in (*x = z*)
       let t = "T"^(string_of_int (n+6)) in  
-      mk_lam h1 (mk_prf (mk_not (mk_not c1)))
-	(mk_lam h2 (mk_prf (mk_not (mk_not c2)))
-	   (mk_lam h3 (mk_prf (mk_not c3))
+      mk_lam h1 (mk_prf (mk_not (mk_not p1)))
+	(mk_lam h2 (mk_prf (mk_not (mk_not p2)))
+	   (mk_lam h3 (mk_prf (mk_not p3))
 	      (mk_app2 (mk_var h1)
-		 (mk_lam h4 (mk_prf c1)
+		 (mk_lam h4 (mk_prf p1)
 		    (mk_app2 (mk_var h2)
-		       (mk_lam h5 (mk_prf c2)
+		       (mk_lam h5 (mk_prf p2)
 			  (mk_app2 (mk_var h3)
 			     (mk_app3 (mk_var h4)
 				(mk_lam t mk_termtype 
 				   (mk_eq (mk_var t) z))
 				(mk_var h5))))))))), n+7
     | _, _, _, _, _, _ -> assert false end
-  | Resolution, [prf1, [p1]; prf2, [p2]], [] -> 
-    begin match p1, p2 with
-    | Dkapp [Dknot; p], p2 when (p = p2) -> mk_app2 prf1 prf2, n
-    | p1, Dkapp [Dknot; p] when (p = p1) -> mk_app2 prf2 prf1, n
-    | _, _ -> assert false end
+  | Resolution, [prf1, p1s; prf2, p2s], _ -> 
+    let prf, concs, newn = 
+      translate_resolution (prf1, p1s) (prf2, p2s) n in
+    prf, newn
+  | Resolution, c1 :: c2 :: cs, _ ->
+    let prf, newconcs, newn = 
+      translate_resolution c1 c2 n in
+    translate_rule Resolution ((prf, newconcs) :: cs) concs env newn
   | Rand, [prf, [(Dkapp [Dkand; p; q]) as dkprop]], [conc] -> 
     let h1 = "H"^(string_of_int n) in 
     let h2 = "H"^(string_of_int (n+1)) in 
@@ -97,7 +156,7 @@ let translate_rule rule hyps concs env n =
 		       (mk_lam h4 (mk_prf q) 
 			  (mk_var h3))))))), n+4
     else if (q = conc)
-    then 
+    then
       mk_lam h1 (mk_prf (mk_not q)) 
 	(mk_app2 prf 
 	   (mk_lam h2 (mk_prf dkprop) 
