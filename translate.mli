@@ -7,16 +7,20 @@ sig
 end
 
 (* from :
-   - the rulename and the dedukti proposition of the input
+   - a dedukti variable used as a proof of the input clause (dkinputvar)
+   - the input clause as a dedukti proposition (dkinput)
    - a step
-   - and an environment containing a proof of the input clause
+   - an environment containing proofs of the previous steps clauses (including the input)
    computes :
-   - a dedukti proof (prf) of the step clause
+   - a dedukti proof (prf) of the step clause as a dedukti proposition (dkclause) 
+     in this environment
    returns : 
-   - a dedukti line declaring a proof term for the implication (input clause => step clause)
-   - the environment enriched with (prf, step clause as a list of dedukti propositions)*)
+   - a dedukti definition of a variable (dkclausevar)
+     being (lambda dkinputvar : proof(dkinput) . prf),
+     which is a proof of (dkinput implies dkclause)
+   - the environment enriched with (dkclausevar dkinputvar)*)
 val translate_step : 
-  Global.rulename -> Dkterm.dkterm -> Global.step ->
+  Dkterm.dkterm-> Dkterm.dkterm -> Global.step ->
   (Dkterm.dkterm * Dkterm.dkterm list) PrfEnvSet.t ->
   Dkterm.dkline * ((Dkterm.dkterm * Dkterm.dkterm list) PrfEnvSet.t) 
 
@@ -24,12 +28,12 @@ val translate_step :
 val print_step : out_channel -> Dkterm.dkline -> unit
 
 (* from an input step, returns: 
-   - its rulename (name)
-   - its clause as a list of dedukti propositions (dklist)
-   - an environment containing
-     (dedukti variable from name, dklist) *)
+   - a dedukti variable used as a proof of the input clause (dkvar)
+   - the input clause as a list of dedukti propositions (dklist)
+   - an environment containing one association, the association
+     input name -> (dkvar, dklist) *)
 val translate_input : 
-  Global.step -> Global.rulename * Dkterm.dkterm * 
+  Global.step -> Dkterm.dkterm * Dkterm.dkterm * 
   ((Dkterm.dkterm * Dkterm.dkterm list) PrfEnvSet.t)
 
 (* print the header of the dedukti file and the declarations of free variables *)

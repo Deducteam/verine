@@ -4,7 +4,7 @@ type dkvar = string
 
 type dkterm = private
   | Dkvar of dkvar
-  | Dklam of dkvar * dkterm * dkterm
+  | Dklam of dkterm * dkterm * dkterm
   | Dkapp of dkterm list
   | Dkarrow of dkterm * dkterm
   | Dktermtype
@@ -17,14 +17,15 @@ type dkterm = private
   | Dkprf
 
 type dkline = private
-  | Dkdecl of dkvar * dkterm
-  | Dkdeftype of dkvar * dkterm * dkterm
+  | Dkdecl of dkterm * dkterm
+  | Dkdeftype of dkterm * dkterm * dkterm
   | Dkprelude of string
 
 (* constructor functions *)
 val mk_var : dkvar -> dkterm
-val mk_lam : dkvar -> dkterm -> dkterm -> dkterm
-val mk_app : dkterm list -> dkterm
+val mk_lam : dkterm -> dkterm -> dkterm -> dkterm
+val mk_lams : dkterm list -> dkterm list -> dkterm -> dkterm
+val mk_app : dkterm -> dkterm list -> dkterm
 val mk_app2 : dkterm -> dkterm -> dkterm
 val mk_app3 : dkterm -> dkterm -> dkterm -> dkterm
 val mk_arrow : dkterm -> dkterm -> dkterm
@@ -37,8 +38,8 @@ val mk_false : dkterm
 val mk_eq : dkterm -> dkterm -> dkterm
 val mk_prf : dkterm -> dkterm
 
-val mk_decl : dkvar -> dkterm -> dkline
-val mk_deftype : dkvar -> dkterm -> dkterm -> dkline
+val mk_decl : dkterm -> dkterm -> dkline
+val mk_deftype : dkterm -> dkterm -> dkterm -> dkline
 val mk_prelude : string -> dkline
 
 (* print functions *)

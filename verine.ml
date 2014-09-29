@@ -9,13 +9,13 @@ let umsg = "Usage: verine <file>"
 let parse_and_run out lexbuf filename= 
   try 
     let input = Parseprf.step Lexprf.token lexbuf in
-    let inputname, dkinput, inputenv = 
+    let dkinputvar, dkinput, inputenv = 
       Translate.translate_input input in
     Translate.print_prelude out input filename;
     let rec parse_and_run_step env =
       let step = Parseprf.step Lexprf.token lexbuf in
       let line, newenv =
-	Translate.translate_step inputname dkinput step env in
+	Translate.translate_step dkinputvar dkinput step env in
       Translate.print_step out line;
       parse_and_run_step newenv in
     parse_and_run_step inputenv
