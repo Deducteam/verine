@@ -1,6 +1,7 @@
 (* AST corresponding to one step of a veriT proof *)
 type term = 
   | Var of string
+  | Fun of string * term list
 
 type prop =
   | Eq of term * term

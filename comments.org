@@ -5,6 +5,7 @@
 
 * verine: à faire
 
+ - modifier mli translate freevarenv
 
 * verine: commmentaires
  - on suppose que la conclusion de l'input contient 

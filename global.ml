@@ -3,6 +3,7 @@ open Printf
 
 type term = 
   | Var of string
+  | Fun of string * term list
 
 type prop =
   | Eq of term * term

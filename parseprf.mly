@@ -62,7 +62,12 @@ stepids :
  | {[]}
  | STEP stepids  {$1 :: $2}
 
+terms :
+ | {[]}
+ | term terms  {$1 :: $2}
+
 term :
  | ID {Var($1)}
+ | OPEN ID terms CLOSE {Fun($2, $3)}
 
 %%

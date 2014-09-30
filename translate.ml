@@ -3,7 +3,7 @@ open Dkterm
 
 module FreeVarSet = Set.Make (
   struct
-    type t = dkterm
+    type t = dkterm * dkterm
     let compare = Pervasives.compare
   end)
   
@@ -130,9 +130,10 @@ let rec find_resolution hyps n =
 	
 (* *** TRANSLATE STEPS *** *)
 	
-let translate_term term =
+let rec translate_term term =
   match term with
   | Var (s) -> mk_var s
+  | Fun (s, ts) -> mk_app (mk_var s) (List.map translate_term ts)
 
 let rec translate_prop prop =
   match prop with
@@ -208,9 +209,17 @@ let print_step out line =
 
 (* *** FIND FREE VARIABLES *** *)
 
-let get_vars_term varenv term =
+let rec get_vars_term varenv term =
   match term with
-  | Var (s) -> FreeVarSet.add (mk_var s) varenv
+  | Var (s) -> 
+    FreeVarSet.add (mk_var s, mk_termtype) varenv
+  | Fun (s, ts) -> 
+    let newenv, typ = 
+      List.fold_left 
+	(fun (env, typ) t -> 
+	  get_vars_term env t, mk_arrow mk_termtype typ)
+	(varenv, mk_termtype) ts in
+    FreeVarSet.add (mk_var s, typ) newenv
 
 let rec get_vars_prop varenv prop =
   match prop with
@@ -233,11 +242,12 @@ let translate_input input =
   | Step (name, Input, [], concs) -> 
     let dkconcs = List.map translate_prop concs in
     mk_var name, mk_clause dkconcs, 
-    PrfEnvSet.add (mk_var name) (mk_var name, dkconcs) PrfEnvSet.empty
+    PrfEnvSet.add (mk_var name) 
+      (mk_var name, dkconcs) PrfEnvSet.empty
   | _ -> raise FoundRuleError
 
 let print_prelude out input filename = 
   p_line out (mk_prelude filename);
   let env = get_vars FreeVarSet.empty input in
   FreeVarSet.iter
-    (fun var -> p_line out (mk_decl var mk_termtype)) env
+    (fun (var, typ) -> p_line out (mk_decl var typ)) env
