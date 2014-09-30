@@ -15,7 +15,7 @@ let parse_and_run out lexbuf filename=
     let rec parse_and_run_step env =
       let step = Parseprf.step Lexprf.token lexbuf in
       let line, newenv =
-	Translate.translate_step dkinputvar dkinput step env in
+	Translate.translate_step dkinput dkinputvar step env in
       Translate.print_step out line;
       parse_and_run_step newenv in
     parse_and_run_step inputenv
