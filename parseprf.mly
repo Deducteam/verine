@@ -10,6 +10,7 @@
 %token INPUT
 %token EQ_REFL
 %token EQ_TRANS
+%token EQ_CONGR
 %token RESOLUTION
 %token AND
 
@@ -37,6 +38,7 @@ rule :
  | INPUT {Input}
  | EQ_REFL {Eq_reflexive}
  | EQ_TRANS {Eq_transitive}
+ | EQ_CONGR {Eq_congruent}
  | RESOLUTION {Resolution}
  | AND {Rand}
  | ID {Anonrule($1)}

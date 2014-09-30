@@ -68,6 +68,12 @@ let rec find_transitive prf1 prf2 x1 y1 x2 y2 x3 y3 n =
       let sym, n3 = find_symmetric prf2 x2 y2 n1 in
       find_transitive prf1 sym x1 y1 y2 x2 x3 y3 n3
 
+(* from h a proof of x = y, returns a proof of tx = ty *)
+let find_congruent h x y tx ty n = 
+  let refl, n1 = find_reflexive tx n in
+  let z, newn = mk_newvar "T" n1 in
+  let tz = mk_unify x y z tx ty in
+  mk_app3 h (mk_lam z mk_termtype (mk_eq tx tz)) refl, newn
 
 (* *** TRANSLATION OF RESOLUTIONS *** *)
 
@@ -151,7 +157,7 @@ let translate_rule rule rulehyps concs =
   match rule, rulehyps, (List.combine concvars concs) with
   | Input, _, _ -> assert false
   | Eq_reflexive, [], [cprf, Dkapp [Dkeq; x; _]] -> 
-    let refl, newn = find_reflexive x n in
+    let refl, _ = find_reflexive x n in
     useprf (mk_app2 cprf refl)
   | Eq_transitive, [],
     [cprf1, Dkapp [Dknot; Dkapp [Dkeq; x1; y1] as p1]; 
@@ -159,11 +165,19 @@ let translate_rule rule rulehyps concs =
      cprf3, Dkapp [Dkeq; x3; y3]] ->
     let h1, n1 = mk_newvar "H" n in                                 (* x1 = y1 *)
     let h2, n2 = mk_newvar "H" n1 in                                (* x2 = y2 *)
-    let prf, newn = find_transitive h1 h2 x1 y1 x2 y2 x3 y3 n2 in   (* x3 = y3 *)
+    let prf, _ = find_transitive h1 h2 x1 y1 x2 y2 x3 y3 n2 in   (* x3 = y3 *)
     useprf (
       mk_app2 cprf1 (mk_lam h1 (mk_prf p1) (
 	mk_app2 cprf2 (mk_lam h2 (mk_prf p2) (
 	  mk_app2 cprf3 prf)))))
+  | Eq_congruent, [], 
+    [cprf1, Dkapp [Dknot; Dkapp [Dkeq; x; y] as p];
+     cprf2, Dkapp [Dkeq; tx; ty]] ->
+    let h1, n1 = mk_newvar "H" n in                  (* x = y *)
+    let prf, _ = find_congruent h1 x y tx ty n1 in   (* tx = ty *)
+    useprf (
+      mk_app2 cprf1 (mk_lam h1 (mk_prf p) (
+	mk_app2 cprf2 prf)))
   | Resolution, rh1 :: rh2 :: rhs, _ -> 
     let hyps = List.map 
       (fun (prf, ps) -> (fun hs -> mk_app prf hs), ps) rulehyps in

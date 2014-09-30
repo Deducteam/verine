@@ -17,6 +17,7 @@ rule token = parse
   | "input"              { INPUT }
   | "eq_reflexive"       { EQ_REFL }
   | "eq_transitive"      { EQ_TRANS }
+  | "eq_congruent"       { EQ_CONGR }
   | "resolution"         { RESOLUTION }
   | ":conclusion"        { CONCLUSION }
   | ":clauses"           { CLAUSES }

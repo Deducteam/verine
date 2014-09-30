@@ -1,13 +1,14 @@
 #+Title: Comments
 
-* veriT
- - x = y est transformé par veriT en y = x
+* A faire
+ - explications générales, sur résolution et sur eq_transitive
+ - enlever les open
 
-* verine: à faire
-
- - modifier mli translate freevarenv
-
-* verine: commmentaires
+* Commmentaires
+ - il existe un ordre strict sur les termes dans veriT 
+   utilisé pour orienter les égalités
+ - on suppose dans congruence que l'orientation x = y 
+   implique l'orientation tx = ty
  - on suppose que la conclusion de l'input contient 
    toutes les variables libres de la preuve
  - on suppose que l'ordre des propositions est conservé 
@@ -16,6 +17,7 @@
    il n'existe qu'une seule proposition p telle que 
    p est dans ci et non p est dans c(i+1) ou inversement
 
-* verine : pour plus tard
+* Pour plus tard
  - utiliser des axiomes pour les règles non identifiées ?
  - enlever List.combine ?
+ - attention aux Dk_app enchainés lors du pattern matching sur les dkterms

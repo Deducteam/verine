@@ -16,6 +16,7 @@ type rule =
   | Input
   | Eq_reflexive
   | Eq_transitive
+  | Eq_congruent
   | Resolution
   | Rand
   | Anonrule of string
