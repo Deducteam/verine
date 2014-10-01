@@ -1,5 +1,4 @@
 (* AST corresponding to a Dedukti output *)
-
 type dkvar = string
 
 type dkterm = private
@@ -41,12 +40,6 @@ val mk_prf : dkterm -> dkterm
 val mk_decl : dkterm -> dkterm -> dkline
 val mk_deftype : dkterm -> dkterm -> dkterm -> dkline
 val mk_prelude : string -> dkline
-
-(* from x, y, z, tx, ty constructed from Dkvar and Dkapp, 
-   asserts that there exists a function t such that 
-   tx = t(x) and ty = t(y),
-   and return t(z)*)
-val mk_unify : dkterm -> dkterm -> dkterm -> dkterm -> dkterm -> dkterm
 
 (* print functions *)
 val p_var : out_channel -> dkvar -> unit

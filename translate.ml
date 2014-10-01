@@ -68,12 +68,21 @@ let rec find_transitive prf1 prf2 x1 y1 x2 y2 x3 y3 n =
       let sym, n3 = find_symmetric prf2 x2 y2 n1 in
       find_transitive prf1 sym x1 y1 y2 x2 x3 y3 n3
 
-(* from h a proof of x = y, returns a proof of tx = ty *)
-let find_congruent h x y tx ty n = 
-  let refl, n1 = find_reflexive tx n in
-  let z, newn = mk_newvar "T" n1 in
-  let tz = mk_unify x y z tx ty in
-  mk_app3 h (mk_lam z mk_termtype (mk_eq tx tz)) refl, newn
+(* from hs, xs and ys such that for each i, hi is a proof of xi = yi, 
+   returns a proof of f(xs) = f(ys) *)
+let find_congruent hs f xs ys n =
+  let tx = mk_app f xs in
+  let z, n1 = mk_newvar "T" n in
+  let refl, _ = find_reflexive tx n1 in      (* tx = tx *)
+  let onestep (prf,ys,xxs) h y =             (* tx = f(ys,x,xs) => tx = f(ys,y,xs) *)
+    match xxs with
+    | x :: xs ->
+      let tz = mk_app f (ys@[z]@xs) in
+      mk_app3 h	(mk_lam z mk_termtype (mk_eq tx tz)) prf, (ys@[y]), xs 
+    | _ -> assert false in
+  let prf, _, _ = List.fold_left2 onestep (refl,[],xs) hs ys in
+  prf
+
 
 (* *** TRANSLATION OF RESOLUTIONS *** *)
 
@@ -165,23 +174,29 @@ let translate_rule rule rulehyps concs =
      cprf3, Dkapp [Dkeq; x3; y3]] ->
     let h1, n1 = mk_newvar "H" n in                                 (* x1 = y1 *)
     let h2, n2 = mk_newvar "H" n1 in                                (* x2 = y2 *)
-    let prf, _ = find_transitive h1 h2 x1 y1 x2 y2 x3 y3 n2 in   (* x3 = y3 *)
+    let prf, _ = find_transitive h1 h2 x1 y1 x2 y2 x3 y3 n2 in      (* x3 = y3 *)
     useprf (
       mk_app2 cprf1 (mk_lam h1 (mk_prf p1) (
 	mk_app2 cprf2 (mk_lam h2 (mk_prf p2) (
 	  mk_app2 cprf3 prf)))))
-  | Eq_congruent, [], 
-    [cprf1, Dkapp [Dknot; Dkapp [Dkeq; x; y] as p];
-     cprf2, Dkapp [Dkeq; tx; ty]] ->
-    let h1, n1 = mk_newvar "H" n in                  (* x = y *)
-    let prf, _ = find_congruent h1 x y tx ty n1 in   (* tx = ty *)
-    useprf (
-      mk_app2 cprf1 (mk_lam h1 (mk_prf p) (
-	mk_app2 cprf2 prf)))
+  | Eq_congruent, [], chyps ->
+    let (cprf, eq), hyps = 
+      match List.rev chyps with h :: hs -> h, List.rev hs | _ -> assert false in
+    let hs, n1 = mk_newvars "H" hyps n in                          (* xi = yi *)
+    let f, xs, ys = 
+      match eq with
+      | Dkapp [Dkeq; Dkapp (fx :: xs); Dkapp (fy :: ys)] -> fx, xs, ys
+      | _ -> assert false in
+    let prf = find_congruent hs f xs ys n1 in                      (* f(xs) = f(ys) *)
+    let applylam prf h (cprf, neq) = 
+      match neq with
+      | Dkapp [Dknot; eq] -> mk_app2 cprf (mk_lam h (mk_prf eq) prf)
+      | _ -> assert false in
+    useprf (List.fold_left2 applylam (mk_app2 cprf prf) hs hyps)
   | Resolution, rh1 :: rh2 :: rhs, _ -> 
     let hyps = List.map 
       (fun (prf, ps) -> (fun hs -> mk_app prf hs), ps) rulehyps in
-    (find_resolution hyps 1) concvars
+    useprf ((find_resolution hyps n) concvars)
   | Rand, [prf, [(Dkapp [Dkand; p; q]) as dkprop]], [cprf, conc] -> 
     let h1, n1 = mk_newvar "H" n in 
     let h2, n2 = mk_newvar "H" n1 in 

@@ -43,15 +43,6 @@ let mk_decl t term = Dkdecl (t, term)
 let mk_deftype t termtype term = Dkdeftype (t, termtype, term)
 let mk_prelude name = Dkprelude (name)
 
-let rec mk_unify x y z tx ty =
-  if tx = ty then tx
-  else if tx = x then (assert (ty = y); z) 
-  else match tx, ty with
-  | Dkapp (sx :: txs), Dkapp (sy :: tys) ->
-    assert (sx = sy);
-    mk_app sx (List.map2 (mk_unify x y z) txs tys)
-  | _, _ -> assert false
-
 let p_var out var = fprintf out "%s" var
 
 let rec p_term out term =

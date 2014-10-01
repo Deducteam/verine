@@ -1,6 +1,4 @@
 open Printf
-open Filename
-open Global
 
 let filename : string option ref = ref None
 
@@ -27,20 +25,19 @@ let parse_and_run out lexbuf filename=
   | Global.FoundRuleError ->
     let (_, l, _) = Global.loc_err lexbuf in
     raise (Global.RuleError l)
-    
 
 let translate_file file = 
   match !filename with
   | Some f -> Arg.usage [] umsg; exit 2
   | None ->
-    let name = chop_extension (basename file) in
+    let name = Filename.chop_extension (Filename.basename file) in
     filename := Some name;
     let chan = open_in file in
     let lexbuf = Lexing.from_channel chan in
-    let out = open_out ((chop_extension file) ^ ".dk") in
+    let out = open_out ((Filename.chop_extension file) ^ ".dk") in
     parse_and_run out lexbuf name
-    
-let _ =
+     
+let () =
   try
     Arg.parse [] translate_file umsg;
   with

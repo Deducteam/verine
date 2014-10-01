@@ -1,5 +1,5 @@
-open Lexing 
 open Printf
+open Lexing
 
 type term = 
   | Var of string
@@ -28,7 +28,8 @@ type step =
 
 let loc_err lexbuf =
   let start = lexeme_start_p lexbuf in 
-  (lexeme lexbuf, start.pos_lnum, (start.pos_cnum - start.pos_bol))
+  (lexeme lexbuf, start.pos_lnum, 
+   (start.pos_cnum - start.pos_bol))
 
 let loc_err_line lexbuf =
   let start = lexeme_start_p lexbuf in 

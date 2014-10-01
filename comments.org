@@ -3,12 +3,15 @@
 * A faire
  - explications générales, sur résolution et sur eq_transitive
  - enlever les open
+ - enlever des beta reductions : passer à des fonctions
+ - regrouper les mk_app2
+ - revoir applylam
 
 * Commmentaires
  - il existe un ordre strict sur les termes dans veriT 
    utilisé pour orienter les égalités
  - on suppose dans congruence que l'orientation x = y 
-   implique l'orientation tx = ty
+   implique l'orientation f(_,x,_) = f(_,y,_)
  - on suppose que la conclusion de l'input contient 
    toutes les variables libres de la preuve
  - on suppose que l'ordre des propositions est conservé 
@@ -21,3 +24,4 @@
  - utiliser des axiomes pour les règles non identifiées ?
  - enlever List.combine ?
  - attention aux Dk_app enchainés lors du pattern matching sur les dkterms
+ - retirer des List.rev dans find_congruent pour rendre l'algorithme plus rapide
