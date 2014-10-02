@@ -214,7 +214,7 @@ let translate_rule rule rulehyps concs =
 	  mk_app2 cprf (mk_app3 h1 q (
 	    mk_lam h2 (mk_prf p) (mk_lam h3 (mk_prf q) h3))))))
     else assert false
-  | Anonrule (name), _, _ -> assert false
+  | Anonrule (name), _, _ -> raise FoundAxiom
   | _, _, _ -> raise FoundRuleError
 
 let rec translate_step dkinput dkinputvar step env =
@@ -223,15 +223,23 @@ let rec translate_step dkinput dkinputvar step env =
     let rulehyps = List.map 
       (fun hyp -> PrfEnvSet.find (mk_var hyp) env) hyps in
     let dkconcs = List.map translate_prop concs in
-    let prf = translate_rule rule rulehyps dkconcs in
-    let line =
-      mk_deftype (mk_var name)
-	(mk_prf (mk_imply dkinput (mk_clause dkconcs))) 
-	(mk_lam dkinputvar (mk_prf dkinput) prf) in
-    let newenv =
-      PrfEnvSet.add (mk_var name)
-	(mk_app2 (mk_var name) dkinputvar, dkconcs) env in 
-    line, newenv
+    try
+      let prf = translate_rule rule rulehyps dkconcs in
+      let line =
+	mk_deftype (mk_var name)
+	  (mk_prf (mk_imply dkinput (mk_clause dkconcs))) 
+	  (mk_lam dkinputvar (mk_prf dkinput) prf) in
+      let newenv =
+	PrfEnvSet.add (mk_var name)
+	  (mk_app2 (mk_var name) dkinputvar, dkconcs) env in 
+      line, newenv
+    with
+    | FoundAxiom -> 
+      let line = mk_decl (mk_var name) (mk_prf (mk_imply dkinput (mk_clause dkconcs))) in
+      let newenv = 
+	PrfEnvSet.add (mk_var name)
+	  (mk_app2 (mk_var name) dkinputvar, dkconcs) env in
+      line, newenv
 
 let print_step out line =
   p_line out line

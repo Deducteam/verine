@@ -6,6 +6,7 @@
  - enlever des beta reductions : passer à des fonctions
  - regrouper les mk_app2
  - revoir applylam
+ - ajouter warning pour les règles non reconnues
 
 * Commmentaires
  - il existe un ordre strict sur les termes dans veriT 
@@ -21,7 +22,6 @@
    p est dans ci et non p est dans c(i+1) ou inversement
 
 * Pour plus tard
- - utiliser des axiomes pour les règles non identifiées ?
  - enlever List.combine ?
  - attention aux Dk_app enchainés lors du pattern matching sur les dkterms
  - retirer des List.rev dans find_congruent pour rendre l'algorithme plus rapide

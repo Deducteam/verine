@@ -3,3 +3,4 @@ logic.dko
 verine
 examples/*.proof
 examples/*.dk
+.merlin

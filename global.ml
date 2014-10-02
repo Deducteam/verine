@@ -43,3 +43,4 @@ exception ParserError of string * int * int
 exception RuleError of int
 exception EndOfFile
 exception FoundRuleError
+exception FoundAxiom

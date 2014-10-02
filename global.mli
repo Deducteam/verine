@@ -35,6 +35,8 @@ exception LexerError of string * int * int
 exception ParserError of string * int * int
 (* rule structure error *)
 exception FoundRuleError
+(* unknown rule needing an axiom declarationr *)
+exception FoundAxiom
 (* rule structure error with indication of line, raised catching FoundRuleError *)
 exception RuleError of int
 (* exception raised at the end of the veriT proof file *)

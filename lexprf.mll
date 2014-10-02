@@ -5,7 +5,7 @@
 
 let space = [' ' '\t']
 let num = ['0'-'9']+
-let ident = ['a'-'z']+
+let ident = ['a'-'z' '_']+
 
 rule token = parse
   | space+               { token lexbuf }
