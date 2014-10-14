@@ -3,5 +3,6 @@ logic.dko
 verine
 test/*.proof
 smtlib2/
+bench/
 .merlin
 *~
