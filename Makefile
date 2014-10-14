@@ -25,11 +25,13 @@
 #  - make test pour créer tous les dks et les vérifier
 #  - make fichier.dk pour créer un dk et le vérifier
 
+TESTDIR = test
+TESTSMTS = $(wildcard $(TESTDIR)/*.smt2)
+TESTDKS = $(TESTSMTS:.smt2=.dkc)
+BENCHDIR = bench
+BENCHSMTS = $(wildcard smtlib2/*/*.smt2) $(wildcard smtlib2/*/*/*.smt2) $(wildcard smtlib2/*/*/*/*.smt2) $(wildcard smtlib2/*/*/*/*/*.smt2)
 
-SMTS = $(wildcard examples/*.smt2)
-DKS = $(SMTS:.smt2=.dk)
-
-.PHONY: all clean test
+.PHONY: all clean test cleantest bench cleanbench
 
 .PRECIOUS: %.proof
 
@@ -38,10 +40,14 @@ all: verine logic.dko
 %.dko: %.dk
 	dkcheck -e $<
 
-#ne prend pas en compte logic.dk (voir 4))
-%.dk: %.proof verine
-	./verine $<
-	dkcheck $@
+#%dk : ne prend pas en compte logic.dk (voir 4))
+
+# %.dkc: %.proof verine
+# 	./verine $<
+# 	dkcheck $@ || true
+
+%.dkc: %.proof verine
+	@./verine $< | dkcheck -stdin || true
 
 %.proof: %.smt2
 	veriT --proof-version=1 --proof=$@ $<
@@ -51,7 +57,15 @@ verine: *.ml *.mli *.mll *.mly
 	mv verine.native verine
 
 clean:
-	rm -f verine logic.dko examples/*.proof examples/*.dk *~ examples/*~ *\# examples/*\#
+	rm -f verine logic.dko *~ *\#
 	ocamlbuild -clean
 
-test: verine logic.dko $(DKS)
+test: verine logic.dko $(TESTDKS)
+
+cleantest:
+	rm -f $(TESTDIR)/*.proof
+
+bench: verine logic.dko
+
+cleanbench:
+	rm -f $(TESTDIR)/*.proof $(TESTDIR)/*.dk $(TESTDIR)/*~ $(TESTDIR)/*\#

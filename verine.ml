@@ -34,7 +34,8 @@ let translate_file file =
     filename := Some name;
     let chan = open_in file in
     let lexbuf = Lexing.from_channel chan in
-    let out = open_out ((Filename.chop_extension file) ^ ".dk") in
+    (*let out = open_out ((Filename.chop_extension file) ^ ".dk") in*)
+    let out = stdout in
     parse_and_run out lexbuf name
      
 let () =

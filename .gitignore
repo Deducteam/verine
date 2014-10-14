@@ -1,6 +1,7 @@
 _build/
 logic.dko
 verine
-examples/*.proof
-examples/*.dk
+test/*.proof
+smtlib2/
 .merlin
+*~
