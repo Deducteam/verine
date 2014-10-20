@@ -80,12 +80,12 @@ let rec find_transitives prfs xys x y n =
       | true, _, _ ->                (* case y = x, y = z *)
 	mk_app3 prf1 (mk_lam t mk_termtype (mk_eq t y2)) prf2, (y1, y2), n1
       | false, true, _ ->            (* case y = x, z = y *)
-	mk_app3 prf1 (mk_lam t mk_termtype (mk_eq x2 t)) prf2, (y1, x2), n1
+	mk_app3 prf1 (mk_lam t mk_termtype (mk_eq x2 t)) prf2, (x2, y1), n1
       | false, false, true ->        (* case x = y, y = z *)
 	mk_app3 prf2 (mk_lam t mk_termtype (mk_eq x1 t)) prf1, (x1, y2), n1
       | false, false, false ->       (* case x = y, z = y: use a proof of y = x *)
 	let sym, n2 = find_symmetric prf1 x1 y1 n1 in
-	mk_app3 sym (mk_lam t mk_termtype (mk_eq x2 t)) prf2, (x1, x2), n2 in
+	mk_app3 sym (mk_lam t mk_termtype (mk_eq x2 t)) prf2, (x2, x1), n2 in
     find_transitives (prf :: ps) (xy :: vs) x y n3
   | _, _ -> assert false
     
