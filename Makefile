@@ -39,7 +39,7 @@ BENCHPRFS = $(BENCHSMTS:.smt2=.proof)
 BENCHPROVED = $(wildcard $(BENCHDIR)/*.proof)
 BENCHDKTS = $(BENCHPROVED:.proof=.dkt)
 VERITTIMEOUT = 1
-VERINETIMEOUT = 3
+VERINETIMEOUT = 10
 
 .PHONY: all clean test cleantest bench cleanbench cleanbenchsmt2 cleanbenchproof cleanbenchdk
 
@@ -85,10 +85,10 @@ $(BENCHDIR)/.dummy:
 cleanbench: cleanbenchsmt2 cleanbenchproof cleanbenchdk
 
 cleanbenchsmt2:
-	rm -f $(BENCHDIR)/.dummy
 	rm -f $(BENCHDIR)/*.smt2
 
 cleanbenchproof:
+	rm -f $(BENCHDIR)/*.dummy
 	rm -f $(BENCHDIR)/*.proof
 
 cleanbenchdk:

@@ -148,18 +148,33 @@ let rec split l1 l2 l3 l4 l =
 let rec find_resolution hyps n =
   match hyps with
   | (fun1, p1s) :: (fun2, p2s) :: hyps ->
-    let b, p, p1h, p1t, p2h, p2t = find_split p1s p2s in
+    let b, p, p1h, p1t, xp2h, xp2t = find_split p1s p2s in
+    let cleanlist l = List.filter (fun x -> not (List.mem x (p1h@p1t))) l in
+    let p2h, p2t = cleanlist xp2h, cleanlist xp2t in
     let h, newn = mk_newvar "H" n in
     let newfun =
       fun vs ->
-	let v1h, v1t, v2h, v2t = split p1h p1t p2h p2t vs in 
+	let v1h, v1t, v2h, v2t = split p1h p1t p2h p2t vs in
+	let env = List.combine (p1h@p1t) (v1h@v1t) in
+	let cplh = List.combine p2h v2h in
+	let cplt = List.combine p2t v2t in
+	let xv2h = List.map 
+	  (fun p -> 
+	    let l1 = List.filter (fun (q, x) -> p = q) cplh in
+	    let l2 = List.filter (fun (q, x) -> p = q) env in
+	    match l1@l2 with (q, x) :: _ -> x | _ -> assert false ) xp2h in
+	let xv2t = List.map 
+	  (fun p -> 
+	    let l1 = List.filter (fun (q, x) -> p = q) cplt in
+	    let l2 = List.filter (fun (q, x) -> p = q) env in
+	    match l1@l2 with (q, x) :: _ -> x | _ -> assert false ) xp2t in
 	match b with
 	| true ->
 	  fun1 (v1h @ [mk_lam h (mk_prf (mk_not p)) (
-	    fun2 (v2h @ [h] @ v2t))] @ v1t)
+	    fun2 (xv2h @ [h] @ xv2t))] @ v1t)
 	| false -> 
-	  fun2 (v2h @ [mk_lam h (mk_prf (mk_not p)) (
-	    fun1 (v1h @ [h] @ v1t))] @ v2t) in
+	  fun2 (xv2h @ [mk_lam h (mk_prf (mk_not p)) (
+	    fun1 (v1h @ [h] @ v1t))] @ xv2t) in
     find_resolution ((newfun, p1h@p1t@p2h@p2t) :: hyps) newn
   | [func, _] -> func
   | _ -> assert false
