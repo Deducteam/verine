@@ -62,7 +62,6 @@ all: verine logic.dko
 
 %.proof: %.smt2
 	timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< || true
-	rm -f $<
 
 verine: *.ml *.mli *.mll *.mly
 	ocamlbuild verine.native

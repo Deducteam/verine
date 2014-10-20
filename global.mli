@@ -1,4 +1,6 @@
 (* AST corresponding to one step of a veriT proof *)
+val eprint :  Dkterm.dkterm -> unit
+
 type term = 
   | Var of string
   | Fun of string * term list

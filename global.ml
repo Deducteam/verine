@@ -1,6 +1,9 @@
 open Printf
 open Lexing
 
+let eprint term = match term with Dkterm.Dkvar x -> 
+  Printf.eprintf "%s \n" x | _ -> assert false
+
 type term = 
   | Var of string
   | Fun of string * term list

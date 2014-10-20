@@ -48,6 +48,7 @@ let find_symmetric h x y n =
      x = y, y = z, x = z up to equality symmetries,
    - prf1 a proof of x1 = y1, prf2 a proof of x2 = y2
    returns a proof of x3 = y3 *)
+
 let rec find_transitive prf1 prf2 x1 y1 x2 y2 x3 y3 n =
   let t, n1 = mk_newvar "T" n in
   match y3 = y2, y3 = y1, x2 = x1 with
@@ -69,10 +70,10 @@ let rec find_transitive prf1 prf2 x1 y1 x2 y2 x3 y3 n =
       find_transitive prf1 sym x1 y1 y2 x2 x3 y3 n2
 
 let rec find_transitives prfs xys x y n =
-  match prfs, xys with
-  | [prf1; prf2], [(x1, y1); (x2, y2)] -> find_transitive prf1 prf2 x1 y1 x2 y2 x y n 
-  | prf1 :: prf2 :: ps, (x1, y1) :: (x2, y2) :: vs ->
-    Printf.eprintf "bonjour";
+  match prfs, xys with 
+  | [prf1; prf2], [(x1, y1); (x2, y2)] -> 
+    find_transitive prf1 prf2 x1 y1 x2 y2 x y n 
+  | (prf1 :: prf2 :: ps), ((x1, y1) :: (x2, y2) :: vs) ->
     let t, n1 = mk_newvar "T" n in
     let prf, xy, n3 =
       match x1 = x2, x1 = y2, y1 = x2 with
@@ -84,10 +85,10 @@ let rec find_transitives prfs xys x y n =
 	mk_app3 prf2 (mk_lam t mk_termtype (mk_eq x1 t)) prf1, (x1, y2), n1
       | false, false, false ->       (* case x = y, z = y: use a proof of y = x *)
 	let sym, n2 = find_symmetric prf1 x1 y1 n1 in
-	mk_app3 prf1 (mk_lam t mk_termtype (mk_eq x2 t)) prf2, (x1, x2), n2 in
+	mk_app3 sym (mk_lam t mk_termtype (mk_eq x2 t)) prf2, (x1, x2), n2 in
     find_transitives (prf :: ps) (xy :: vs) x y n3
   | _, _ -> assert false
-
+    
 (* from hs, xs and ys such that for each i, hi is a proof of xi = yi, 
    returns a proof of f(xs) = f(ys) *)
 let find_congruent hs f xs ys n =
@@ -191,8 +192,8 @@ let translate_rule rule rulehyps concs =
     let refl, _ = find_reflexive x n in
     useprf (mk_app2 cprf refl)
   (* | Eq_transitive, [], *)
-  (*   [cprf1, Dkapp [Dknot; Dkapp [Dkeq; x1; y1] as p1];  *)
-  (*    cprf2, Dkapp [Dknot; Dkapp [Dkeq; x2; y2] as p2];  *)
+  (*   [cprf1, Dkapp [Dknot; Dkapp [Dkeq; x1; y1] as p1]; *)
+  (*    cprf2, Dkapp [Dknot; Dkapp [Dkeq; x2; y2] as p2]; *)
   (*    cprf3, Dkapp [Dkeq; x3; y3]] -> *)
   (*   let h1, n1 = mk_newvar "H" n in                                 (\* x1 = y1 *\) *)
   (*   let h2, n2 = mk_newvar "H" n1 in                                (\* x2 = y2 *\) *)
@@ -206,10 +207,10 @@ let translate_rule rule rulehyps concs =
     let hyps, hyp = firstlasts chyps in
     let pxys = List.map 
       (fun (v, t) -> match t with 
-	Dkapp [Dknot; Dkapp [Dkeq; x; y] as p] -> (p, v), (x, y) | _ -> assert false) hyps in
+	Dkapp [Dknot; Dkapp [Dkeq; x; y] as p] -> (v, p), (x, y) | _ -> assert false) hyps in
     let cprf, x, y = match hyp with 
 	cprf, Dkapp [Dkeq; x; y] -> cprf, x, y | _ -> assert false in
-    let xys, cps = List.split pxys in
+    let cps, xys = List.split pxys in
     let hs, n1 = mk_newvars "H" cps n in
     let prf, _ = find_transitives hs xys x y n1 in
     useprf (
