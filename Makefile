@@ -30,32 +30,39 @@ SHELL = /bin/bash
 TESTDIR = test
 TESTSMTS = $(wildcard $(TESTDIR)/*.smt2)
 TESTDKCS = $(TESTSMTS:.smt2=.dkc)
-SMTLIBDIR = smtlib2/QF_UFIDL
+SMTLIBDIR = smtlib2/QF_UF/eq_diamond
 BENCHDIR = bench
 # Relative path from SMTLIBDIR to BENCHDIR
-RELDIR = ../../bench
-SMTLIBSMTS = $(wildcard $(BENCHDIR)/*.smt2)
+# RELDIR = ../../bench
+BENCHSMTS = $(wildcard $(BENCHDIR)/*.smt2)
+BENCHPRFS = $(BENCHSMTS:.smt2=.proof)
+BENCHPROVED = $(wildcard $(BENCHDIR)/*.proof)
+BENCHDKTS = $(BENCHPROVED:.proof=.dkt)
+VERITTIMEOUT = 1
+VERINETIMEOUT = 3
 
-.PHONY: all clean test cleantest bench cleanbench
+.PHONY: all clean test cleantest bench cleanbench cleanbenchsmt2 cleanbenchproof cleanbenchdk
 
-.PRECIOUS: %.proof
+.PRECIOUS: %.proof %.dk
 
 all: verine logic.dko
 
 %.dko: %.dk
 	dkcheck -e $<
 
-#%dk : ne prend pas en compte logic.dk (voir 4))
-
-# %.dkc: %.proof verine
-# 	./verine $<
-# 	dkcheck $@ || true
-
 %.dkc: %.proof verine
 	@./verine $< | dkcheck -stdin || true
 
+%.dkt: %.dk
+	dkcheck $< || true
+
+#%dk : ne prend pas en compte logic.dk (voir 4))
+%.dk: %.proof verine
+	timeout $(VERINETIMEOUT) ./verine $< > $@ || true
+
 %.proof: %.smt2
-		veriT --proof-version=1 --proof=$@ $<
+	timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< || true
+	rm -f $<
 
 verine: *.ml *.mli *.mll *.mly
 	ocamlbuild verine.native
@@ -68,28 +75,22 @@ clean:
 test: verine logic.dko $(TESTDKCS)
 
 cleantest:
-	rm -f $(TESTDIR)/*.proof
+	rm -f $(TESTDIR)/*.dk
 
-bench: verine logic.dko $(BENCHDIR)/.dummy
+bench: verine logic.dko $(BENCHDIR)/.dummy $(BENCHPRFS) $(BENCHDKTS)
 
 $(BENCHDIR)/.dummy:
-	shopt -s nullglob && \
-	  cd $(SMTLIBDIR) && for f1 in *.smt2 ; do cp $$f1 $(RELDIR); done && \
-	  for d1 in ./*; do if test -d $$d1; then \
-	    cd $$d1 && for f2 in *.smt2 ; do cp $$f2 ../$(RELDIR); done && \
-	    for d2 in ./*; do if test -d $$d2; then \
-	      cd $$d2 && for f3 in *.smt2 ; do cp $$f3 ../../$(RELDIR); done && \
-	      for d3 in ./*; do if test -d $$d3; then \
-	        cd $$d3 && for f4 in *.smt2 ; do cp $$f4 ../../../$(RELDIR); done && \
-	        for d4 in ./*; do if test -d $$d4; then \
-	          cd $$d4 && for f5 in *.smt2 ; do cp $$f5 ../../../../$(RELDIR); done && \
-	          for d5 in ./*; do if test -d $$d5; then echo "need deeper search"; \
-	          fi done && cd ..; \
-	        fi done && cd ..; \
-	      fi done && cd ..; \
-	    fi done && cd ..; \
-	  fi done
+	for f in $(SMTLIBDIR)/*/*.smt2; do cp $$f $(BENCHDIR); done
 	touch $(BENCHDIR)/.dummy
 
-cleanbench:
+cleanbench: cleanbenchsmt2 cleanbenchproof cleanbenchdk
+
+cleanbenchsmt2:
 	rm -f $(BENCHDIR)/.dummy
+	rm -f $(BENCHDIR)/*.smt2
+
+cleanbenchproof:
+	rm -f $(BENCHDIR)/*.proof
+
+cleanbenchdk:
+	rm -f $(BENCHDIR)/*.dk

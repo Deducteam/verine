@@ -5,7 +5,7 @@
 
 let space = [' ' '\t']
 let num = ['0'-'9']+
-let ident = ['a'-'z' '_']+
+let ident = ['a'-'z' '_'] ['a'-'z' '_' '0'-'9']*
 
 rule token = parse
   | space+               { token lexbuf }
@@ -22,7 +22,6 @@ rule token = parse
   | ":conclusion"        { CONCLUSION }
   | ":clauses"           { CLAUSES }
   | "not"                { NOT }
-  | "and"                { AND }
   | "false"              { FALSE }
   | "="                  { EQ }
   | ident as s           { ID (s) }

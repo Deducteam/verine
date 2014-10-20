@@ -12,7 +12,6 @@
 %token EQ_TRANS
 %token EQ_CONGR
 %token RESOLUTION
-%token AND
 
 %token CONCLUSION
 %token CLAUSES
@@ -40,7 +39,6 @@ rule :
  | EQ_TRANS {Eq_transitive}
  | EQ_CONGR {Eq_congruent}
  | RESOLUTION {Resolution}
- | AND {Rand}
  | ID {Anonrule($1)}
 
 clauses :
@@ -56,8 +54,8 @@ props :
 
 prop :
  | OPEN NOT prop CLOSE {Not($3)}
- | OPEN AND prop prop CLOSE {And($3, $4)}
  | OPEN EQ term term CLOSE {Eq($3, $4)}
+ | OPEN ID props CLOSE {Anonpropfun($2, $3)}
  | FALSE {False}
 
 stepids :

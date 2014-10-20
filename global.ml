@@ -8,9 +8,10 @@ type term =
 type prop =
   | Eq of term * term
   | Not of prop
-  | And of prop * prop
+  (* | And of prop * prop *)
   | Imply of prop * prop
   | False
+  | Anonpropfun of string * prop list
 
 type rulename = string
 
@@ -20,7 +21,7 @@ type rule =
   | Eq_transitive
   | Eq_congruent
   | Resolution
-  | Rand
+  (* | Rand *)
   | Anonrule of string
 
 type step =
