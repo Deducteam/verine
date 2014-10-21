@@ -1,9 +1,6 @@
 open Printf
 open Lexing
 
-let eprint term = match term with Dkterm.Dkvar x -> 
-  Printf.eprintf "%s \n" x | _ -> assert false
-
 type term = 
   | Var of string
   | Fun of string * term list
@@ -11,7 +8,6 @@ type term =
 type prop =
   | Eq of term * term
   | Not of prop
-  (* | And of prop * prop *)
   | Imply of prop * prop
   | False
   | Anonpropfun of string * prop list
@@ -24,7 +20,6 @@ type rule =
   | Eq_transitive
   | Eq_congruent
   | Resolution
-  (* | Rand *)
   | Anonrule of string
 
 type step =

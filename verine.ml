@@ -4,6 +4,8 @@ let filename : string option ref = ref None
 
 let umsg = "Usage: verine <file>"
 
+let argspec = ["-debug", Arg.Set Debug.debugmode, "debug mode"]
+
 let parse_and_run out lexbuf filename= 
   try 
     let input = Parseprf.step Lexprf.token lexbuf in
@@ -40,7 +42,7 @@ let translate_file file =
      
 let () =
   try
-    Arg.parse [] translate_file umsg;
+    Arg.parse argspec translate_file umsg;
   with
   | Global.LexerError (s, l, c ) -> Global.error l c (sprintf "Unexpected character '%s'"s)
   | Global.ParserError (s, l, c ) -> Global.error l c (sprintf "Unexpected token '%s'"s)

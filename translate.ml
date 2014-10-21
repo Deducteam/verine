@@ -148,6 +148,8 @@ let rec split l1 l2 l3 l4 l =
 let rec find_resolution hyps n =
   match hyps with
   | (fun1, p1s) :: (fun2, p2s) :: hyps ->
+    Debug.eprintdksc "p1s : " p1s "\n";
+    Debug.eprintdksc "p2s : " p2s "\n";
     let b, p, p1h, p1t, xp2h, xp2t = find_split p1s p2s in
     let cleanlist l = List.filter (fun x -> not (List.mem x (p1h@p1t))) l in
     let p2h, p2t = cleanlist xp2h, cleanlist xp2t in
@@ -190,7 +192,6 @@ let rec translate_prop prop =
   match prop with
   | Eq (x, y) -> mk_eq (translate_term x) (translate_term y)
   | Not (p) -> mk_not (translate_prop p)
-  (* | And (p, q) -> mk_and (translate_prop p) (translate_prop q) *)
   | Imply (p, q) -> mk_imply (translate_prop p) (translate_prop q)
   | False -> mk_false
   | Anonpropfun (s, ps) -> mk_app 
@@ -206,17 +207,6 @@ let translate_rule rule rulehyps concs =
   | Eq_reflexive, [], [cprf, Dkapp [Dkeq; x; _]] -> 
     let refl, _ = find_reflexive x n in
     useprf (mk_app2 cprf refl)
-  (* | Eq_transitive, [], *)
-  (*   [cprf1, Dkapp [Dknot; Dkapp [Dkeq; x1; y1] as p1]; *)
-  (*    cprf2, Dkapp [Dknot; Dkapp [Dkeq; x2; y2] as p2]; *)
-  (*    cprf3, Dkapp [Dkeq; x3; y3]] -> *)
-  (*   let h1, n1 = mk_newvar "H" n in                                 (\* x1 = y1 *\) *)
-  (*   let h2, n2 = mk_newvar "H" n1 in                                (\* x2 = y2 *\) *)
-  (*   let prf, _ = find_transitive h1 h2 x1 y1 x2 y2 x3 y3 n2 in      (\* x3 = y3 *\) *)
-  (*   useprf ( *)
-  (*     mk_app2 cprf1 (mk_lam h1 (mk_prf p1) ( *)
-  (* 	mk_app2 cprf2 (mk_lam h2 (mk_prf p2) ( *)
-  (* 	  mk_app2 cprf3 prf))))) *)
   | Eq_transitive, [], chyps ->
     let firstlasts l = match List.rev l with x :: xs -> List.rev xs, x | _ -> assert false in
     let hyps, hyp = firstlasts chyps in
@@ -250,23 +240,6 @@ let translate_rule rule rulehyps concs =
     let hyps = List.map 
       (fun (prf, ps) -> (fun hs -> mk_app prf hs), ps) rulehyps in
     useprf ((find_resolution hyps n) concvars)
-  (* | Rand, [prf, [(Dkapp [Dkand; p; q]) as dkprop]], [cprf, conc] ->  *)
-  (*   let h1, n1 = mk_newvar "H" n in  *)
-  (*   let h2, n2 = mk_newvar "H" n1 in  *)
-  (*   let h3, _ = mk_newvar "H" n2 in  *)
-  (*   if (p = conc) *)
-  (*   then *)
-  (*     useprf ( *)
-  (* 	mk_app2 prf (mk_lam h1 (mk_prf dkprop) ( *)
-  (* 	  mk_app2 cprf (mk_app3 h1 p ( *)
-  (* 	    mk_lam h2 (mk_prf p) (mk_lam h3 (mk_prf q) h2)))))) *)
-  (*   else if (q = conc) *)
-  (*   then *)
-  (*     useprf ( *)
-  (* 	mk_app2 prf (mk_lam h1 (mk_prf dkprop) ( *)
-  (* 	  mk_app2 cprf (mk_app3 h1 q ( *)
-  (* 	    mk_lam h2 (mk_prf p) (mk_lam h3 (mk_prf q) h3)))))) *)
-  (*   else assert false *)
   | Anonrule (name), _, _ -> raise FoundAxiom
   | _, _, _ -> raise FoundRuleError
 
