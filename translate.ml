@@ -113,21 +113,36 @@ exception NotFound
    such that 
    - p is (not q): returns true, q, p1h, p1t, p2h, p2t
    - q is (not p): returns false, p, p1h, p1t, p2h, p2t *)
-let rec find_split p1s p2s =
-  match p1s, p2s with
-  | (Dkapp [Dknot; p]) :: p1s, p2 :: p2s when (p = p2) -> true, p, [], p1s, [], p2s
-  | p1 :: p1s, (Dkapp [Dknot; p]) :: p2s when (p = p1) -> false, p, [], p1s, [], p2s
-  | p1 :: p1s, p2 :: p2s ->
-    begin 
-      try 
-	let b, p, p1h, p1t, p2h, p2t = find_split p1s (p2 :: p2s) in
-	b, p, p1 :: p1h, p1t, p2h, p2t
-      with
-      | NotFound -> 
-	let b, p, p1h, p1t, p2h, p2t = find_split (p1 :: p1s) p2s in
-	b, p, p1h, p1t, p2 :: p2h, p2t
-    end
-  | _, _ -> raise NotFound
+let find_split p1s p2s =
+  (* Debug.eprintdksc "p1s : " p1s "\n"; *)
+  (* Debug.eprintdksc "p2s : " p2s "\n\n"; *)
+  let rec yfind_split p1h p1s p2s = 
+    match p1h, p2s with
+    | (Dkapp [Dknot; p]), p2 :: p2s when (p = p2) -> 
+      Some (true, p, [], p1s, [], p2s)
+    | p1, (Dkapp [Dknot; p]) :: p2s when (p = p1) -> 
+      Some (false, p, [], p1s, [], p2s)
+    | p1, p2 :: p2s -> begin
+      match yfind_split p1 p1s p2s with
+      | Some (b, p, p1h, p1t, p2h, p2t) -> Some (b, p, p1h, p1t, p2 :: p2h, p2t)
+      | None -> None end
+    | _, _ -> None in
+  let rec xfind_split p1s p2s =
+    match p1s, p2s with
+    | (Dkapp [Dknot; p]) :: p1s, p2 :: p2s when (p = p2) -> 
+      Some (true, p, [], p1s, [], p2s)
+    | p1 :: p1s, (Dkapp [Dknot; p]) :: p2s when (p = p1) -> 
+      Some (false, p, [], p1s, [], p2s)
+    | p1 :: p1s, p2 :: p2s -> begin
+      match xfind_split p1s (p2 :: p2s) with
+      | Some (b, p, p1h, p1t, p2h, p2t) -> Some (b, p, p1 :: p1h, p1t, p2h, p2t)
+      | None -> begin
+	match yfind_split p1 p1s p2s with
+	| Some (b, p, p1h, p1t, p2h, p2t) -> Some (b, p, p1h, p1t, p2 :: p2h, p2t)
+	| None -> None end end
+    | _, _ -> None in
+  match xfind_split p1s p2s with | Some x -> x | None -> assert false
+    
 
 let rec split l1 l2 l3 l4 l =
   match l1, l2, l3, l4, l with
@@ -148,8 +163,6 @@ let rec split l1 l2 l3 l4 l =
 let rec find_resolution hyps n =
   match hyps with
   | (fun1, p1s) :: (fun2, p2s) :: hyps ->
-    Debug.eprintdksc "p1s : " p1s "\n";
-    Debug.eprintdksc "p2s : " p2s "\n";
     let b, p, p1h, p1t, xp2h, xp2t = find_split p1s p2s in
     let cleanlist l = List.filter (fun x -> not (List.mem x (p1h@p1t))) l in
     let p2h, p2t = cleanlist xp2h, cleanlist xp2t in

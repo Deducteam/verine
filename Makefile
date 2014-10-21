@@ -58,7 +58,7 @@ all: verine logic.dko
 
 #%dk : ne prend pas en compte logic.dk (voir 4))
 %.dk: %.proof verine
-	timeout $(VERINETIMEOUT) ./verine $< > $@ || true
+	timeout $(VERINETIMEOUT) ./verine $< > $@ || rm -f $@
 
 %.proof: %.smt2
 	timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< || true
