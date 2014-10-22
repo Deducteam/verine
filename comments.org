@@ -3,7 +3,6 @@
 * A faire
  - explications générales, sur résolution et sur eq_transitive
  - enlever les open
- - enlever des beta reductions : passer à des fonctions
  - regrouper les mk_app2
  - revoir applylam
  - ajouter warning pour les règles non reconnues

@@ -6,11 +6,20 @@ type term =
   | Fun of string * term list
 
 type prop =
-  | Eq of term * term
+  | Core of coreprop
+  | Pred of string * term list
+
+and coreprop =
+  | True
+  | False
   | Not of prop
   | Imply of prop * prop
-  | False
-  | Anonpropfun of string * prop list
+  | And of prop * prop
+  | Or of prop * prop
+  | Xor of prop * prop
+  | Eq of term * term
+  | Distinct of term * term
+  | Ite of prop * term * term
 
 type rulename = string
 

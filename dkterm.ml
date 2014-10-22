@@ -9,10 +9,11 @@ type dkterm =
   | Dkarrow of dkterm * dkterm
   | Dktermtype
   | Dkproptype
-  | Dknot
-  | Dkand
-  | Dkimply
   | Dkfalse
+  | Dknot
+  | Dkimply
+  | Dkand
+  | Dkor
   | Dkeq
   | Dkprf
 
@@ -34,6 +35,7 @@ let mk_termtype = Dktermtype
 let mk_proptype = Dkproptype
 let mk_not term = mk_app2 Dknot term
 let mk_and p q = mk_app3 Dkand p q
+let mk_or p q = mk_app3 Dkor p q
 let mk_imply p q = mk_app3 Dkimply p q
 let mk_false = Dkfalse
 let mk_eq t1 t2 = mk_app3 Dkeq t1 t2
@@ -59,6 +61,7 @@ let rec p_term out term =
   | Dkproptype -> output_string out "logic.Prop"
   | Dknot -> output_string out "logic.not"
   | Dkand -> output_string out "logic.and"
+  | Dkor -> output_string out "logic.or"
   | Dkimply -> output_string out "logic.imply"
   | Dkfalse -> output_string out "logic.False"
   | Dkeq -> output_string out "logic.equal"

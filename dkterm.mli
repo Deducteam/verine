@@ -8,10 +8,11 @@ type dkterm = private
   | Dkarrow of dkterm * dkterm
   | Dktermtype
   | Dkproptype
-  | Dknot
-  | Dkand
-  | Dkimply
   | Dkfalse
+  | Dknot
+  | Dkimply
+  | Dkand
+  | Dkor
   | Dkeq
   | Dkprf
 
@@ -32,6 +33,7 @@ val mk_termtype : dkterm
 val mk_proptype : dkterm
 val mk_not : dkterm -> dkterm
 val mk_and : dkterm -> dkterm -> dkterm
+val mk_or : dkterm -> dkterm -> dkterm
 val mk_imply : dkterm -> dkterm -> dkterm
 val mk_false : dkterm
 val mk_eq : dkterm -> dkterm -> dkterm

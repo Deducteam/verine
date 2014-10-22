@@ -186,12 +186,14 @@ let rec translate_term term =
 
 let rec translate_prop prop =
   match prop with
-  | Eq (x, y) -> mk_eq (translate_term x) (translate_term y)
-  | Not (p) -> mk_not (translate_prop p)
-  | Imply (p, q) -> mk_imply (translate_prop p) (translate_prop q)
-  | False -> mk_false
-  | Anonpropfun (s, ps) -> mk_app 
-    (mk_var (s^(string_of_int (List.length ps)))) (List.map translate_prop ps)
+  | Core False -> mk_false
+  | Core (Not (p)) -> mk_not (translate_prop p)
+  | Core (And (p, q)) -> mk_and (translate_prop p) (translate_prop q)
+  | Core (Or (p, q)) -> mk_or (translate_prop p) (translate_prop q)
+  | Core (Eq (x, y)) -> mk_eq (translate_term x) (translate_term y)
+  | Core _ -> assert false
+  | Pred (s, ts) -> mk_app 
+    (mk_var (s^(string_of_int (List.length ts)))) (List.map translate_term ts)
 
 let translate_rule rule rulehyps concs = 
   let concvars, n = mk_newvars "H" concs 1 in
@@ -282,18 +284,19 @@ let rec get_vars_term varenv term =
 
 let rec get_vars_prop varenv prop =
   match prop with
-  | Eq (t1, t2) -> 
-    get_vars_term (get_vars_term varenv t1) t2
-  | Not (p) -> get_vars_prop varenv p
-  | Imply (p, q) -> get_vars_prop (get_vars_prop varenv p) q
-  | False -> varenv
-  | Anonpropfun (s, ps) -> 
+  | Core False -> varenv
+  | Core (Not (p)) -> get_vars_prop varenv p
+  | Core (And (p, q)) -> get_vars_prop (get_vars_prop varenv p) q
+  | Core (Or (p, q)) -> get_vars_prop (get_vars_prop varenv p) q
+  | Core (Eq (t1, t2)) -> get_vars_term (get_vars_term varenv t1) t2
+  | Core _ -> assert false
+  | Pred (s, ts) -> 
     let newenv, typ =
       List.fold_left
-	(fun (env, typ) p ->
-	  get_vars_prop env p, mk_arrow mk_proptype typ)
-	(varenv, mk_proptype) ps in
-    FreeVarSet.add (mk_var (s^(string_of_int (List.length ps))), typ) newenv
+	(fun (env, typ) t ->
+	  get_vars_term env t, mk_arrow mk_termtype typ)
+	(varenv, mk_proptype) ts in
+    FreeVarSet.add (mk_var (s^(string_of_int (List.length ts))), typ) newenv
 
 let get_vars varenv step = 
   match step with
