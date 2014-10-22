@@ -48,7 +48,6 @@ let find_symmetric h x y n =
      x = y, y = z, x = z up to equality symmetries,
    - prf1 a proof of x1 = y1, prf2 a proof of x2 = y2
    returns a proof of x3 = y3 *)
-
 let rec find_transitive prf1 prf2 x1 y1 x2 y2 x3 y3 n =
   let t, n1 = mk_newvar "T" n in
   match y3 = y2, y3 = y1, x2 = x1 with
@@ -114,8 +113,6 @@ exception NotFound
    - p is (not q): returns true, q, p1h, p1t, p2h, p2t
    - q is (not p): returns false, p, p1h, p1t, p2h, p2t *)
 let find_split p1s p2s =
-  (* Debug.eprintdksc "p1s : " p1s "\n"; *)
-  (* Debug.eprintdksc "p2s : " p2s "\n\n"; *)
   let rec xfind_split p1h p1t p2h p2t =
     match p1t, p2t with
     | (Dkapp [Dknot; p]) :: p1t', p2 :: p2t' when (p = p2) ->
@@ -242,7 +239,7 @@ let translate_rule rule rulehyps concs =
   | Anonrule (name), _, _ -> raise FoundAxiom
   | _, _, _ -> raise FoundRuleError
 
-let rec translate_step dkinput dkinputvar step env =
+let rec translate_step dkinputvar dkinputconcvar step env =
   match step with
   | Step (name, rule, hyps, concs) -> 
     let rulehyps = List.map 
@@ -252,15 +249,15 @@ let rec translate_step dkinput dkinputvar step env =
       let prf = translate_rule rule rulehyps dkconcs in
       let line =
 	mk_deftype (mk_var name)
-	  (mk_prf (mk_imply dkinput (mk_clause dkconcs))) 
-	  (mk_lam dkinputvar (mk_prf dkinput) prf) in
+	  (mk_prf (mk_imply dkinputconcvar (mk_clause dkconcs))) 
+	  (mk_lam dkinputvar (mk_prf dkinputconcvar) prf) in
       let newenv =
 	PrfEnvSet.add (mk_var name)
 	  (mk_app2 (mk_var name) dkinputvar, dkconcs) env in 
       line, newenv
     with
     | FoundAxiom -> 
-      let line = mk_decl (mk_var name) (mk_prf (mk_imply dkinput (mk_clause dkconcs))) in
+      let line = mk_decl (mk_var name) (mk_prf (mk_imply dkinputconcvar (mk_clause dkconcs))) in
       let newenv = 
 	PrfEnvSet.add (mk_var name)
 	  (mk_app2 (mk_var name) dkinputvar, dkconcs) env in
@@ -288,7 +285,6 @@ let rec get_vars_prop varenv prop =
   | Eq (t1, t2) -> 
     get_vars_term (get_vars_term varenv t1) t2
   | Not (p) -> get_vars_prop varenv p
-  (* | And (p, q) -> get_vars_prop (get_vars_prop varenv p) q *)
   | Imply (p, q) -> get_vars_prop (get_vars_prop varenv p) q
   | False -> varenv
   | Anonpropfun (s, ps) -> 
@@ -310,13 +306,15 @@ let translate_input input =
   match input with 
   | Step (name, Input, [], concs) -> 
     let dkconcs = List.map translate_prop concs in
-    mk_var name, mk_clause dkconcs, 
+    mk_var name, mk_var ("P"^name), mk_clause dkconcs, 
     PrfEnvSet.add (mk_var name) 
       (mk_var name, dkconcs) PrfEnvSet.empty
   | _ -> raise FoundRuleError
 
-let print_prelude out input filename = 
+let print_prelude out input filename dkinput dkinputconcvar = 
   p_line out (mk_prelude filename);
   let env = get_vars FreeVarSet.empty input in
   FreeVarSet.iter
-    (fun (var, typ) -> p_line out (mk_decl var typ)) env
+    (fun (var, typ) -> p_line out (mk_decl var typ)) env;
+  p_line out (mk_deftype dkinputconcvar mk_proptype dkinput)
+  

@@ -52,17 +52,17 @@ let rec p_term out term =
     fprintf out "%a: %a => %a"
       p_term t p_term_p t1 p_term_p t2
   | Dkapp (ts) -> p_terms out ts
-  | Dkarrow (t1, t2) -> 
+  | Dkarrow (t1, t2) ->
     fprintf out "%a -> %a"
       p_term_p t1 p_term_p t2
-  | Dktermtype -> fprintf out "logic.Term"
-  | Dkproptype -> fprintf out "logic.Prop"
-  | Dknot -> fprintf out "logic.not"
-  | Dkand -> fprintf out "logic.and"
-  | Dkimply -> fprintf out "logic.imply"
-  | Dkfalse -> fprintf out "logic.False"
-  | Dkeq -> fprintf out "logic.equal"
-  | Dkprf -> fprintf out "logic.prf"
+  | Dktermtype -> output_string out "logic.Term"
+  | Dkproptype -> output_string out "logic.Prop"
+  | Dknot -> output_string out "logic.not"
+  | Dkand -> output_string out "logic.and"
+  | Dkimply -> output_string out "logic.imply"
+  | Dkfalse -> output_string out "logic.False"
+  | Dkeq -> output_string out "logic.equal"
+  | Dkprf -> output_string out "logic.prf"
 
 and p_term_p out term = 
   match term with
