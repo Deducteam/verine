@@ -116,33 +116,19 @@ exception NotFound
 let find_split p1s p2s =
   (* Debug.eprintdksc "p1s : " p1s "\n"; *)
   (* Debug.eprintdksc "p2s : " p2s "\n\n"; *)
-  let rec yfind_split p1h p1s p2s = 
-    match p1h, p2s with
-    | (Dkapp [Dknot; p]), p2 :: p2s when (p = p2) -> 
-      Some (true, p, [], p1s, [], p2s)
-    | p1, (Dkapp [Dknot; p]) :: p2s when (p = p1) -> 
-      Some (false, p, [], p1s, [], p2s)
-    | p1, p2 :: p2s -> begin
-      match yfind_split p1 p1s p2s with
-      | Some (b, p, p1h, p1t, p2h, p2t) -> Some (b, p, p1h, p1t, p2 :: p2h, p2t)
-      | None -> None end
-    | _, _ -> None in
-  let rec xfind_split p1s p2s =
-    match p1s, p2s with
-    | (Dkapp [Dknot; p]) :: p1s, p2 :: p2s when (p = p2) -> 
-      Some (true, p, [], p1s, [], p2s)
-    | p1 :: p1s, (Dkapp [Dknot; p]) :: p2s when (p = p1) -> 
-      Some (false, p, [], p1s, [], p2s)
-    | p1 :: p1s, p2 :: p2s -> begin
-      match xfind_split p1s (p2 :: p2s) with
-      | Some (b, p, p1h, p1t, p2h, p2t) -> Some (b, p, p1 :: p1h, p1t, p2h, p2t)
-      | None -> begin
-	match yfind_split p1 p1s p2s with
-	| Some (b, p, p1h, p1t, p2h, p2t) -> Some (b, p, p1h, p1t, p2 :: p2h, p2t)
-	| None -> None end end
-    | _, _ -> None in
-  match xfind_split p1s p2s with | Some x -> x | None -> assert false
-    
+  let rec xfind_split p1h p1t p2h p2t =
+    match p1t, p2t with
+    | (Dkapp [Dknot; p]) :: p1t', p2 :: p2t' when (p = p2) ->
+      true, p, p1h, p1t', p2h, p2t'
+    | p1 :: p1t', (Dkapp [Dknot; p]) :: p2t' when (p = p1) ->
+      false, p, p1h, p1t', p2h, p2t'
+    | p1 :: p1', p2 :: p2t' ->
+      xfind_split p1h p1t (p2 :: p2h) p2t'
+    | p1 :: p1t', [] ->
+      xfind_split (p1 :: p1h) p1t' [] p2s
+    | _, _ -> assert false in
+  let b, p, p1h, p1t, p2h, p2t = xfind_split [] p1s [] p2s in
+  b, p, List.rev p1h, p1t, List.rev p2h, p2t
 
 let rec split l1 l2 l3 l4 l =
   match l1, l2, l3, l4, l with
