@@ -9,7 +9,7 @@ module FreeVarSet = Set.Make (
   
 module PrfEnvSet = Map.Make (
   struct 
-    type t = dkterm
+    type t =  dkterm
     let compare = Pervasives.compare
   end)
 
@@ -241,28 +241,32 @@ let translate_rule rule rulehyps concs =
   | Anonrule (name), _, _ -> raise FoundAxiom
   | _, _, _ -> raise FoundRuleError
 
-let rec translate_step dkinputvar dkinputconcvar step env =
+let rec translate_step dkinputvars dkinputconcvars step env =
   match step with
   | Step (name, rule, hyps, concs) -> 
     let rulehyps = List.map 
-      (fun hyp -> PrfEnvSet.find (mk_var hyp) env) hyps in
+      (fun hyp -> 
+       PrfEnvSet.find (mk_var hyp) env) hyps in
     let dkconcs = List.map translate_prop concs in
     try
       let prf = translate_rule rule rulehyps dkconcs in
       let line =
 	mk_deftype (mk_var name)
-	  (mk_prf (mk_imply dkinputconcvar (mk_clause dkconcs))) 
-	  (mk_lam dkinputvar (mk_prf dkinputconcvar) prf) in
+	  (mk_prf (mk_implys dkinputconcvars (mk_clause dkconcs))) 
+	  (mk_lams dkinputvars (List.map mk_prf dkinputconcvars) prf) in
       let newenv =
 	PrfEnvSet.add (mk_var name)
-	  (mk_app2 (mk_var name) dkinputvar, dkconcs) env in 
+	  (mk_app (mk_var name) dkinputvars, dkconcs) env in 
       line, newenv
     with
     | FoundAxiom -> 
-      let line = mk_decl (mk_var name) (mk_prf (mk_imply dkinputconcvar (mk_clause dkconcs))) in
+      let line = 
+	mk_decl 
+	  (mk_var name) 
+	  (mk_prf (mk_implys dkinputconcvars (mk_clause dkconcs))) in
       let newenv = 
 	PrfEnvSet.add (mk_var name)
-	  (mk_app2 (mk_var name) dkinputvar, dkconcs) env in
+	  (mk_app (mk_var name) dkinputvars, dkconcs) env in
       line, newenv
 
 let print_step out line =
@@ -306,19 +310,27 @@ let get_vars varenv step =
 
 (* *** TRANSLATE INPUT *** *)
 
-let translate_input input =
+let translate_input input env =
   match input with 
   | Step (name, Input, [], concs) -> 
     let dkconcs = List.map translate_prop concs in
-    mk_var name, mk_var ("P"^name), mk_clause dkconcs, 
+    mk_var name, mk_var ("P"^name), input, 
     PrfEnvSet.add (mk_var name) 
-      (mk_var name, dkconcs) PrfEnvSet.empty
+      (mk_var name, dkconcs) env (* enlever le premier elt *)
   | _ -> raise FoundRuleError
 
-let print_prelude out input filename dkinput dkinputconcvar = 
-  p_line out (mk_prelude filename);
-  let env = get_vars FreeVarSet.empty input in
+let print_prelude out inputs dkinputconcvars = 
+  let freevars =
+    List.fold_left 
+      (fun freevars dkinput -> get_vars freevars dkinput)
+      FreeVarSet.empty inputs in
   FreeVarSet.iter
-    (fun (var, typ) -> p_line out (mk_decl var typ)) env;
-  p_line out (mk_deftype dkinputconcvar mk_proptype dkinput)
-  
+    (fun (var, typ) -> p_line out (mk_decl var typ)) freevars;
+  List.iter2
+    (fun input dkinputconcvar ->
+     match input with 
+     | Step (_, _, _, concs) -> 
+	let dkconcs = List.map translate_prop concs in
+	let dkinput = mk_clause dkconcs in
+     p_line out (mk_deftype dkinputconcvar mk_proptype dkinput))
+    inputs dkinputconcvars

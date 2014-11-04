@@ -38,6 +38,9 @@ let mk_not term = mk_app2 Dknot term
 let mk_and p q = mk_app3 Dkand p q
 let mk_or p q = mk_app3 Dkor p q
 let mk_imply p q = mk_app3 Dkimply p q
+let rec mk_implys ps q = 
+  List.fold_left
+    (fun q p -> mk_imply p q) q (List.rev ps)
 let mk_false = Dkfalse
 let mk_eq t1 t2 = mk_app3 Dkeq t1 t2
 let mk_prf t = mk_app2 Dkprf t

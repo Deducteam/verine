@@ -6,19 +6,36 @@ let umsg = "Usage: verine <file>"
 
 let argspec = ["-debug", Arg.Set Debug.debugmode, "debug mode"]
 
-let parse_and_run out lexbuf filename= 
+let parse_and_run out lexbuf = 
   try 
-    let input = Scope.scope (Parseprf.step Lexprf.token lexbuf) in
-    let dkinputvar, dkinputconcvar, dkinput, inputenv = 
-      Translate.translate_input input in
-    Translate.print_prelude out input filename dkinput dkinputconcvar;
-    let rec parse_and_run_step env =
+    let inputstep step = 
+      match step with 
+      | Global.Step (_, Global.Input, _, _) -> true
+      | _ -> false in
+    let rec parse_and_run_step dkinputvars dkinputconcvars env =
       let step = Scope.scope (Parseprf.step Lexprf.token lexbuf) in
+      run_step step dkinputvars dkinputconcvars env
+    and run_step step dkinputvars dkinputconcvars env =
       let line, newenv =
-	Translate.translate_step dkinputvar dkinputconcvar step env in
+	Translate.translate_step 
+	  dkinputvars dkinputconcvars step env in
       Translate.print_step out line;
-      parse_and_run_step newenv in
-    parse_and_run_step inputenv
+      parse_and_run_step dkinputvars dkinputconcvars newenv    
+    in
+    let rec parse_and_run_input dkinputvars dkinputconcvars inputs env =
+      let step = Scope.scope (Parseprf.step Lexprf.token lexbuf) in
+      if inputstep step
+      then
+ 	let newvar, newconcvar, newinput, newenv = 
+	  Translate.translate_input step env in
+	parse_and_run_input 
+	  (newvar :: dkinputvars)
+	  (newconcvar :: dkinputconcvars) 
+	  (newinput :: inputs) newenv
+      else begin
+      	  Translate.print_prelude out inputs dkinputconcvars;
+	  run_step step dkinputvars dkinputconcvars env end in
+    parse_and_run_input [] [] [] Translate.PrfEnvSet.empty      
   with 
   | Global.EndOfFile -> ()
   | Parsing.Parse_error -> 
@@ -32,13 +49,15 @@ let translate_file file =
   match !filename with
   | Some f -> Arg.usage [] umsg; exit 2
   | None ->
-    let name = Filename.chop_extension (Filename.basename file) in
+    let name = 
+      Scope.convert 
+	(Filename.chop_extension (Filename.basename file)) in
     filename := Some name;
     let chan = open_in file in
     let lexbuf = Lexing.from_channel chan in
-    (*let out = open_out ((Filename.chop_extension file) ^ ".dk") in*)
     let out = stdout in
-    parse_and_run out lexbuf name
+    Dkterm.p_line out (Dkterm.mk_prelude name);
+    parse_and_run out lexbuf
      
 let () =
   try

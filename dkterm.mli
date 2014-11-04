@@ -35,6 +35,7 @@ val mk_not : dkterm -> dkterm
 val mk_and : dkterm -> dkterm -> dkterm
 val mk_or : dkterm -> dkterm -> dkterm
 val mk_imply : dkterm -> dkterm -> dkterm
+val mk_implys : dkterm list -> dkterm -> dkterm
 val mk_false : dkterm
 val mk_eq : dkterm -> dkterm -> dkterm
 val mk_prf : dkterm -> dkterm

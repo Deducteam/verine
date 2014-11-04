@@ -1,18 +1,20 @@
 open Parsetree
 
+let convert s =
+  let buf = Buffer.create (2*String.length s) in
+  String.iter
+    (fun c -> 
+     match c with
+     | 'a'..'z' | 'A'..'Z' | '0'..'9' -> Buffer.add_char buf c
+     | '_' -> Buffer.add_string buf "__"
+     | _ -> 
+	Buffer.add_string 
+	  buf ("_"^(string_of_int (int_of_char c)))) s;
+  Buffer.contents buf
+
 let scope_symbol sym = 
   match sym with
-  | Symbol s ->     
-     let buf = Buffer.create (2*String.length s) in
-     String.iter
-       (fun c -> 
-	match c with
-	| 'a'..'z' | 'A'..'Z' | '0'..'9' -> Buffer.add_char buf c
-	| '_' -> Buffer.add_string buf "__"
-	| _ -> 
-	   Buffer.add_string 
-	     buf ("_"^(string_of_int (int_of_char c)))) s;
-     Buffer.contents buf
+  | Symbol s -> convert s
 
 let rec scope_term smtterm = 
   match smtterm with
