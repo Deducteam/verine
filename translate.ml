@@ -186,14 +186,14 @@ let rec translate_term term =
 
 let rec translate_prop prop =
   match prop with
-  | Core False -> mk_false
-  | Core (Not (p)) -> mk_not (translate_prop p)
-  | Core (And (p, q)) -> mk_and (translate_prop p) (translate_prop q)
-  | Core (Or (p, q)) -> mk_or (translate_prop p) (translate_prop q)
-  | Core (Eq (x, y)) -> mk_eq (translate_term x) (translate_term y)
-  | Core _ -> assert false
+  | False -> mk_false
+  | Not (p) -> mk_not (translate_prop p)
+  | And (p, q) -> mk_and (translate_prop p) (translate_prop q)
+  | Or (p, q) -> mk_or (translate_prop p) (translate_prop q)
+  | Eq (x, y) -> mk_eq (translate_term x) (translate_term y)
   | Pred (s, ts) -> mk_app 
     (mk_var (s^(string_of_int (List.length ts)))) (List.map translate_term ts)
+  | _ -> assert false
 
 let translate_rule rule rulehyps concs = 
   let concvars, n = mk_newvars "H" concs 1 in
@@ -284,19 +284,20 @@ let rec get_vars_term varenv term =
 
 let rec get_vars_prop varenv prop =
   match prop with
-  | Core False -> varenv
-  | Core (Not (p)) -> get_vars_prop varenv p
-  | Core (And (p, q)) -> get_vars_prop (get_vars_prop varenv p) q
-  | Core (Or (p, q)) -> get_vars_prop (get_vars_prop varenv p) q
-  | Core (Eq (t1, t2)) -> get_vars_term (get_vars_term varenv t1) t2
-  | Core _ -> assert false
+  | False -> varenv
+  | Not (p) -> get_vars_prop varenv p
+  | And (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Or (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Eq (t1, t2) -> get_vars_term (get_vars_term varenv t1) t2
   | Pred (s, ts) -> 
     let newenv, typ =
       List.fold_left
 	(fun (env, typ) t ->
 	  get_vars_term env t, mk_arrow mk_termtype typ)
 	(varenv, mk_proptype) ts in
-    FreeVarSet.add (mk_var (s^(string_of_int (List.length ts))), typ) newenv
+    FreeVarSet.add 
+      (mk_var (s^(string_of_int (List.length ts))), typ) newenv
+  | _ -> assert false
 
 let get_vars varenv step = 
   match step with

@@ -8,12 +8,12 @@ let argspec = ["-debug", Arg.Set Debug.debugmode, "debug mode"]
 
 let parse_and_run out lexbuf filename= 
   try 
-    let input = Parseprf.step Lexprf.token lexbuf in
+    let input = Scope.scope (Parseprf.step Lexprf.token lexbuf) in
     let dkinputvar, dkinputconcvar, dkinput, inputenv = 
       Translate.translate_input input in
     Translate.print_prelude out input filename dkinput dkinputconcvar;
     let rec parse_and_run_step env =
-      let step = Parseprf.step Lexprf.token lexbuf in
+      let step = Scope.scope (Parseprf.step Lexprf.token lexbuf) in
       let line, newenv =
 	Translate.translate_step dkinputvar dkinputconcvar step env in
       Translate.print_step out line;

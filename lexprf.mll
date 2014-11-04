@@ -1,15 +1,6 @@
 {
   open Parseprf
   open Lexing
-  let convert s =
-    let buf = Buffer.create (2*String.length s) in
-    String.iter
-      (fun c -> match c with
-      | 'a'..'z' | 'A'..'Z' | '0'..'9' -> Buffer.add_char buf c
-      | '_' -> Buffer.add_string buf "__"
-      | _ -> Buffer.add_string buf ("_"^(string_of_int (int_of_char c)))) s;
-    Buffer.contents buf
-
 } 
 
 let space = [' ' '\t']
@@ -50,7 +41,7 @@ rule token = parse
   | "resolution"         { RESOLUTION }
   | ":conclusion"        { CONCLUSION }
   | ":clauses"           { CLAUSES }
-  | symbol as s          { ID (convert s) }
+  | symbol as s          { SYM s }
   | _                    { let (s, l, c) = Global.loc_err lexbuf in
 raise ( Global.LexerError (s, l, c) ) }
   | eof                  { EOF }

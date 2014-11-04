@@ -1,5 +1,5 @@
 %{
-  open Global
+  open Parsetree
 %}
   
 %token OPEN
@@ -32,71 +32,58 @@
 %token CONCLUSION
 %token CLAUSES
 
-%token <string> ID
+%token <string> SYM
 
 %token EOF
 
 %start step
-%type <Global.step> step
+%type <Parsetree.line> step
   
 %%
 
 step :
- | OPEN SET STEP OPEN rule clauses conclusion CLOSE CLOSE { Step ($3, $5, $6, $7) }
- | EOF { raise EndOfFile }
+ | OPEN SET STEP OPEN rule clauses conclusion CLOSE CLOSE { Line ($3, $5, $6, $7) }
+ | EOF { raise Global.EndOfFile }
 ;
 
 rule :
- | INPUT { Input }
- | EQ_REFL { Eq_reflexive }
- | EQ_TRANS { Eq_transitive }
- | EQ_CONGR { Eq_congruent }
- | RESOLUTION { Resolution }
- | ID { Anonrule ($1) }
- | AND { Anonrule ("and") }
- | OR { Anonrule ("or") }
+ | INPUT { Global.Input }
+ | EQ_REFL { Global.Eq_reflexive }
+ | EQ_TRANS { Global.Eq_transitive }
+ | EQ_CONGR { Global.Eq_congruent }
+ | RESOLUTION { Global.Resolution }
+ | SYM { Global.Anonrule ($1) }
+ | AND { Global.Anonrule ("and") }
+ | OR { Global.Anonrule ("or") }
 
 clauses :
  | { [] }
  | CLAUSES OPEN stepids CLOSE { $3 }
 
 conclusion :
- | CONCLUSION OPEN props CLOSE { $3 }
+ | CONCLUSION OPEN smtterms CLOSE { $3 }
 
-props :
+smtterms :
  | { [] }
- | prop props { $1 :: $2 }
+ | smtterm smtterms { $1 :: $2 }
 
-prop :
- | TRUE { assert false }
- | FALSE { assert false }
- | OPEN NOT prop CLOSE  { Core (Not $3) }
- | OPEN IMPLY props CLOSE { assert false }
- | OPEN AND props CLOSE { 
-   let coreand p1 p2 = Core (And (p1, p2)) in
-   let rec xcoreand ps = 
-   match List.rev ps with 
-   | [] | [_] -> assert false
-   | [p1; p2] -> coreand p2 p1
-   | p1 :: ps -> coreand (xcoreand (List.rev ps)) p1 in
-   xcoreand $3 }
- | OPEN OR props CLOSE { match $3 with [p1; p2] -> Core (Or (p1, p2)) | _ -> assert false }
- | OPEN XOR props CLOSE { assert false }
- | OPEN EQ terms CLOSE { match $3 with [t1; t2] -> Core (Eq (t1, t2)) | _ -> assert false }
- | OPEN DISTINCT terms CLOSE { assert false }
- | OPEN ITE CLOSE { assert false }
- | OPEN ID terms CLOSE { Pred($2, $3)}
+smtterm :
+ | TRUE { Core (True) }
+ | FALSE { Core (False) }
+ | OPEN NOT smtterm CLOSE  { Core (Not $3) }
+ | OPEN IMPLY smtterms CLOSE { Core (Imply $3) }
+ | OPEN AND smtterms CLOSE { Core (And $3) }
+ | OPEN OR smtterms CLOSE { Core (Or $3) }
+ | OPEN XOR smtterms CLOSE { Core (Xor $3) }
+ | OPEN EQ smtterms CLOSE { Core (Eq $3) }
+ | OPEN DISTINCT smtterms CLOSE { Core (Distinct $3) }
+ | OPEN ITE smtterm smtterm smtterm CLOSE 
+	{ Core (Ite ($3, $4, $5)) }
+ | OPEN SYM smtterms CLOSE { Fun (Symbol $2, $3) }
+ | SYM { Var (Symbol $1) }
 
 stepids :
  | { [] }
  | STEP stepids  { $1 :: $2 }
-
-terms :
- | { [] }
- | term terms  { $1 :: $2 }
-
-term :
- | ID { Var($1) }
- | OPEN ID terms CLOSE { Fun($2, $3) }
 
 %%

@@ -4,10 +4,6 @@ type term =
   | Fun of string * term list
 
 type prop =
-  | Core of coreprop
-  | Pred of string * term list
-
-and coreprop =
   | True
   | False
   | Not of prop
@@ -18,6 +14,7 @@ and coreprop =
   | Eq of term * term
   | Distinct of term * term
   | Ite of prop * term * term
+  | Pred of string * term list
 
 type rulename = string
 

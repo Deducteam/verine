@@ -27,7 +27,8 @@ let mk_lam var t term = Dklam (var, t, term)
 let mk_lams vars types e = 
   List.fold_left2 (fun term var t -> mk_lam var t term) e (List.rev vars) (List.rev types)
 
-let mk_app t ts = Dkapp (t :: ts)
+let mk_app t ts = 
+  match ts with [] -> t | _ -> Dkapp (t :: ts)
 let mk_app2 t1 t2 = mk_app t1 [t2]
 let mk_app3 t1 t2 t3 = mk_app t1 [t2; t3]
 let mk_arrow t1 t2 = Dkarrow (t1, t2)
