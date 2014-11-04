@@ -26,16 +26,16 @@ let parse_and_run out lexbuf =
       let step = Scope.scope (Parseprf.step Lexprf.token lexbuf) in
       if inputstep step
       then
- 	let newvar, newconcvar, newinput, newenv = 
+ 	let newvar, newconcvar, newenv = 
 	  Translate.translate_input step env in
 	parse_and_run_input 
 	  (newvar :: dkinputvars)
 	  (newconcvar :: dkinputconcvars) 
-	  (newinput :: inputs) newenv
+	  (step :: inputs) newenv
       else begin
-      	  Translate.print_prelude out inputs dkinputconcvars;
+      	  Translate.print_prelude out env inputs dkinputconcvars;
 	  run_step step dkinputvars dkinputconcvars env end in
-    parse_and_run_input [] [] [] Translate.PrfEnvSet.empty      
+    parse_and_run_input [] [] [] Translate.PrfEnvMap.empty      
   with 
   | Global.EndOfFile -> ()
   | Parsing.Parse_error -> 

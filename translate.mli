@@ -1,6 +1,6 @@
 (* environment: association table mapping a rulename to a couple
    (dedukti proof term, clause as a list of dedukti propositions) *)
-module PrfEnvSet :
+module PrfEnvMap :
 sig
   type 'a t
   val empty: 'a t
@@ -20,8 +20,8 @@ end
    - the environment enriched with (dkclausevar dkinputvar)*)
 val translate_step : 
   Dkterm.dkterm list -> Dkterm.dkterm list -> Global.step ->
-  (Dkterm.dkterm * Dkterm.dkterm list) PrfEnvSet.t ->
-  Dkterm.dkline * ((Dkterm.dkterm * Dkterm.dkterm list) PrfEnvSet.t) 
+  (Dkterm.dkterm * Global.prop list) PrfEnvMap.t ->
+  Dkterm.dkline * ((Dkterm.dkterm * Global.prop list) PrfEnvMap.t) 
 
 (* prints a dedukti line using Dkterm p_line function *)
 val print_step : out_channel -> Dkterm.dkline -> unit
@@ -31,10 +31,10 @@ val print_step : out_channel -> Dkterm.dkline -> unit
    - the input clause as one dedukti propositions
    - an environment containing the proof (dkvar) *)
 val translate_input : 
-  Global.step -> ((Dkterm.dkterm * Dkterm.dkterm list) PrfEnvSet.t) -> 
-  Dkterm.dkterm * Dkterm.dkterm * Global.step *
-    ((Dkterm.dkterm * Dkterm.dkterm list) PrfEnvSet.t)
+  Global.step -> ((Dkterm.dkterm * Global.prop list) PrfEnvMap.t) -> 
+  Dkterm.dkterm * Dkterm.dkterm *
+    ((Dkterm.dkterm * Global.prop list) PrfEnvMap.t)
 
 (* print the header of the dedukti file and the declarations of free variables *)
 val print_prelude : 
-  out_channel -> Global.step list -> Dkterm.dkterm list -> unit
+  out_channel -> ((Dkterm.dkterm * Global.prop list) PrfEnvMap.t) -> Global.step list -> Dkterm.dkterm list -> unit
