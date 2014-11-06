@@ -68,6 +68,9 @@ smtterms :
  | smtterm smtterms { $1 :: $2 }
 
 smtterm :
+ | SYM { Var (Symbol $1) }
+ | OPEN SYM smtterms CLOSE { Fun (Symbol $2, $3) }
+ | OPEN LET OPEN smtvarbindings CLOSE smtterm CLOSE { Let ($4, $6) }
  | TRUE { Core (True) }
  | FALSE { Core (False) }
  | OPEN NOT smtterm CLOSE  { Core (Not $3) }
@@ -79,11 +82,16 @@ smtterm :
  | OPEN DISTINCT smtterms CLOSE { Core (Distinct $3) }
  | OPEN ITE smtterm smtterm smtterm CLOSE 
 	{ Core (Ite ($3, $4, $5)) }
- | OPEN SYM smtterms CLOSE { Fun (Symbol $2, $3) }
- | SYM { Var (Symbol $1) }
 
 stepids :
  | { [] }
  | STEP stepids  { $1 :: $2 }
+
+smtvarbindings :
+ | smtvarbinding { [$1] }
+ | smtvarbinding smtvarbindings { $1 :: $2 }
+
+smtvarbinding :
+ | OPEN SYM smtterm CLOSE { Varbinding (Symbol $2, $3) }
 
 %%

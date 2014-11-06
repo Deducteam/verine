@@ -9,6 +9,7 @@ type dkterm =
   | Dkarrow of dkterm * dkterm
   | Dktermtype
   | Dkproptype
+  | Dktrue
   | Dkfalse
   | Dknot
   | Dkimply
@@ -26,7 +27,6 @@ let mk_var var = Dkvar var
 let mk_lam var t term = Dklam (var, t, term)
 let mk_lams vars types e = 
   List.fold_left2 (fun term var t -> mk_lam var t term) e (List.rev vars) (List.rev types)
-
 let mk_app t ts = 
   match ts with [] -> t | _ -> Dkapp (t :: ts)
 let mk_app2 t1 t2 = mk_app t1 [t2]
@@ -34,14 +34,12 @@ let mk_app3 t1 t2 t3 = mk_app t1 [t2; t3]
 let mk_arrow t1 t2 = Dkarrow (t1, t2)
 let mk_termtype = Dktermtype
 let mk_proptype = Dkproptype
+let mk_true = Dktrue
+let mk_false = Dkfalse
 let mk_not term = mk_app2 Dknot term
+let mk_imply p q = mk_app3 Dkimply p q
 let mk_and p q = mk_app3 Dkand p q
 let mk_or p q = mk_app3 Dkor p q
-let mk_imply p q = mk_app3 Dkimply p q
-let rec mk_implys ps q = 
-  List.fold_left
-    (fun q p -> mk_imply p q) q (List.rev ps)
-let mk_false = Dkfalse
 let mk_eq t1 t2 = mk_app3 Dkeq t1 t2
 let mk_prf t = mk_app2 Dkprf t
 
@@ -67,6 +65,7 @@ let rec p_term out term =
   | Dkand -> output_string out "logic.and"
   | Dkor -> output_string out "logic.or"
   | Dkimply -> output_string out "logic.imply"
+  | Dktrue -> output_string out "logic.True"
   | Dkfalse -> output_string out "logic.False"
   | Dkeq -> output_string out "logic.equal"
   | Dkprf -> output_string out "logic.prf"

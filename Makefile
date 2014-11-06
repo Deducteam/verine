@@ -27,6 +27,7 @@
 
 SHELL = /bin/bash
 
+VERINEFLAGS =
 TESTDIR = test
 TESTSMTS = $(wildcard $(TESTDIR)/*.smt2)
 TESTDKCS = $(TESTSMTS:.smt2=.dkc)
@@ -39,7 +40,7 @@ BENCHPRFS = $(BENCHSMTS:.smt2=.proof)
 BENCHPROVED = $(wildcard $(BENCHDIR)/*.proof)
 BENCHDKTS = $(BENCHPROVED:.proof=.dkt)
 VERITTIMEOUT = 1
-VERINETIMEOUT = 10
+VERINETIMEOUT = 3
 
 .PHONY: all clean test cleantest bench cleanbench cleanbenchsmt2 cleanbenchproof cleanbenchdk
 
@@ -51,17 +52,19 @@ all: verine logic.dko
 	dkcheck -e $<
 
 %.dkc: %.proof verine
-	@./verine $< | dkcheck -stdin || true
+	@./verine $(VERINEFLAGS) $< | dkcheck -stdin || true
 
 %.dkt: %.dk
 	dkcheck $< || true
 
 #%dk : ne prend pas en compte logic.dk (voir 4))
 %.dk: %.proof verine
-	timeout $(VERINETIMEOUT) ./verine $< > $@ || rm -f $@
+	timeout $(VERINETIMEOUT) ./verine $(VERINEFLAGS) $< > $@ || rm -f $@
 
 %.proof: %.smt2
-	timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< || true
+	timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< \
+	&& if [[ `cat $@` == 'Formula is Satisfiable' ]]; then rm $@; fi\
+	|| true
 
 verine: *.ml *.mli *.mll *.mly
 	ocamlbuild verine.native

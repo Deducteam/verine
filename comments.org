@@ -6,6 +6,7 @@
  - regrouper les mk_app2
  - revoir applylam
  - ajouter warning pour les règles non reconnues
+ - eq_congruent_pred
 
 * Commmentaires
  - il existe un ordre strict sur les termes dans veriT 

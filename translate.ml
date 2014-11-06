@@ -186,14 +186,18 @@ let rec translate_term term =
 
 let rec translate_prop prop =
   match prop with
+  | True -> mk_true
   | False -> mk_false
   | Not (p) -> mk_not (translate_prop p)
+  | Imply (p, q) -> mk_imply (translate_prop p) (translate_prop q)
   | And (p, q) -> mk_and (translate_prop p) (translate_prop q)
   | Or (p, q) -> mk_or (translate_prop p) (translate_prop q)
+  | Xor (p, q) -> assert false
   | Eq (x, y) -> mk_eq (translate_term x) (translate_term y)
+  | Distinct (x, y) -> mk_not (mk_eq (translate_term x) (translate_term y))
+  | Ite (p, x, y) -> assert false
   | Pred (s, ts) -> mk_app 
     (mk_var (s^(string_of_int (List.length ts)))) (List.map translate_term ts)
-  | _ -> assert false
 
 let translate_rule rule rulehyps concs = 
   let concvars, n = mk_newvars "H" concs 1 in
@@ -217,12 +221,13 @@ let translate_rule rule rulehyps concs =
     let hs, n1 = mk_newvars "H" cps n in
     let prf, _ = find_transitives hs xys x y n1 in
     useprf (
-      List.fold_left2
-	(fun prf h (cprf, p) -> mk_app2 cprf (mk_lam h (mk_prf p) prf)) 
-	(mk_app2 cprf prf) hs cps)
+	List.fold_left2
+	  (fun prf h (cprf, p) -> mk_app2 cprf (mk_lam h (mk_prf p) prf)) 
+	  (mk_app2 cprf prf) hs cps)
   | Eq_congruent, [], chyps ->
     let (cprf, eq), hyps = 
       match List.rev chyps with h :: hs -> h, List.rev hs | _ -> assert false in
+    (* Debug.eprintdksc "concs" concs "\n"; *)
     let hs, n1 = mk_newvars "H" hyps n in                          (* xi = yi *)
     let f, xs, ys = 
       match eq with
@@ -252,9 +257,12 @@ let rec translate_step dkinputvars dkinputconcvars step env =
     let dkconcs = List.map translate_prop concs in
     try
       let prf = translate_rule rule rulehyps dkconcs in
+      let proved = 
+	List.fold_left 
+	  (fun q p -> mk_imply p q) (mk_clause dkconcs)
+	  (List.rev dkinputconcvars) in
       let line =
-	mk_deftype (mk_var name)
-	  (mk_prf (mk_implys dkinputconcvars (mk_clause dkconcs))) 
+	mk_deftype (mk_var name) (mk_prf proved) 
 	  (mk_lams dkinputvars (List.map mk_prf dkinputconcvars) prf) in
       let newenv =
 	PrfEnvMap.add name
@@ -262,10 +270,11 @@ let rec translate_step dkinputvars dkinputconcvars step env =
       line, newenv
     with
     | FoundAxiom -> 
-      let line = 
-	mk_decl 
-	  (mk_var name) 
-	  (mk_prf (mk_implys dkinputconcvars (mk_clause dkconcs))) in
+      let proved = 
+	List.fold_left 
+	  (fun q p -> mk_imply p q) (mk_clause dkconcs)
+	  (List.rev dkinputconcvars) in
+      let line = mk_decl (mk_var name) (mk_prf proved) in
       let newenv = 
 	PrfEnvMap.add name
 	  (mk_app (mk_var name) dkinputvars, concs) env in
@@ -290,11 +299,16 @@ let rec get_vars_term varenv term =
 
 let rec get_vars_prop varenv prop =
   match prop with
+  | True -> varenv
   | False -> varenv
   | Not (p) -> get_vars_prop varenv p
+  | Imply (p, q) -> get_vars_prop (get_vars_prop varenv p) q
   | And (p, q) -> get_vars_prop (get_vars_prop varenv p) q
   | Or (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Xor (p, q) -> get_vars_prop (get_vars_prop varenv p) q
   | Eq (t1, t2) -> get_vars_term (get_vars_term varenv t1) t2
+  | Distinct (t1, t2) -> get_vars_term (get_vars_term varenv t1) t2
+  | Ite (p, t1, t2) -> assert false
   | Pred (s, ts) -> 
     let newenv, typ =
       List.fold_left
@@ -303,7 +317,6 @@ let rec get_vars_prop varenv prop =
 	(varenv, mk_proptype) ts in
     FreeVarSet.add 
       (mk_var (s^(string_of_int (List.length ts))), typ) newenv
-  | _ -> assert false
 
 let get_vars varenv step = 
   match step with

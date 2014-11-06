@@ -1,5 +1,41 @@
 open Parsetree
 
+module BindVarSet = Map.Make (
+  struct
+    type t = symbol
+    let compare = Pervasives.compare
+  end)
+
+let scope_binding env binding =
+  match binding with
+  | Varbinding (sym, smtterm) -> BindVarSet.add sym smtterm env
+
+let rec unfold env smtterm =
+  match smtterm with
+  | Var (sym) -> 
+     if BindVarSet.mem sym env
+     then unfold env (BindVarSet.find sym env)
+     else smtterm
+  | Fun (sym, smtterms) -> 
+     Fun (sym, List.map (unfold env) smtterms)
+  | Let (bindings, smtterm) ->
+     let newenv = List.fold_left scope_binding env bindings in
+     unfold newenv smtterm
+  | Core (smtcore) ->
+     let smtc = match smtcore with
+     | True -> True
+     | False -> False
+     | Not (smtterm) -> Not (unfold env smtterm)
+     | Imply (smtterms) -> Imply (List.map (unfold env) smtterms)
+     | And (smtterms) -> And (List.map (unfold env) smtterms)
+     | Or (smtterms) -> Or (List.map (unfold env) smtterms)
+     | Xor (smtterms) -> Xor (List.map (unfold env) smtterms)
+     | Eq (smtterms) -> Eq (List.map (unfold env) smtterms)
+     | Distinct (smtterms) -> Distinct (List.map (unfold env) smtterms)
+     | Ite (smtterm1, smtterm2, smtterm3) -> 
+	Ite (unfold env smtterm1, unfold env smtterm2, unfold env smtterm3) in
+     Core smtc
+	     
 let convert s =
   let buf = Buffer.create (2*String.length s) in
   String.iter
@@ -27,10 +63,11 @@ let rec scope_term smtterm =
 
 let rec scope_prop smtterm = 
   match smtterm with
-  | Var (sym) -> Global.Pred (scope_symbol sym, [])
+  | Var (sym) -> 
+     Global.Pred (scope_symbol sym, [])
   | Fun (sym, smtterms) -> 
      Global.Pred (scope_symbol sym, List.map scope_term smtterms)
-  | Let (bindings, smtterm) -> assert false 
+  | Let (bindings, smtterm) -> assert false
   | Core (smtcore) -> 
      match smtcore with
      | True -> Global.True
@@ -74,25 +111,41 @@ let rec scope_prop smtterm =
 	xmkxors (List.rev ps)
      | Eq (smtterms) ->
 	let mkand p1 p2 = Global.And (p1, p2) in
-	let mkeq t1 t2 = Global.Eq (t1, t2) in
-	let ts = List.map scope_term smtterms in
-	let rec mkeqs ts =
-	  match ts with
-	  | [] | [_] -> assert false
-	  | [t1; t2] -> [mkeq t1 t2]
-	  | t1 :: t2 :: ts -> 
-	     (mkeq t1 t2) :: mkeqs (t2 :: ts) in
 	let rec xmkands ps = 
 	  match ps with
 	  | [] -> assert false
 	  | [p] -> p
 	  | [p1; p2] -> mkand p2 p1
 	  | p :: ps -> mkand (xmkands ps) p in
+	let mkeq t1 t2 = Global.Eq (t1, t2) in
+	let rec mkeqs ts =
+	  match ts with
+	  | [] | [_] -> assert false
+	  | [t1; t2] -> [mkeq t1 t2]
+	  | t1 :: t2 :: ts -> 
+	     (mkeq t1 t2) :: mkeqs (t2 :: ts) in
+	let ts = List.map scope_term smtterms in
 	xmkands (List.rev (mkeqs ts))
-     | Distinct (smtterms) -> assert false
+     | Distinct (smtterms) -> 
+	let mkand p1 p2 = Global.And (p1, p2) in
+	let rec xmkands ps = 
+	  match ps with
+	  | [] -> assert false
+	  | [p] -> p
+	  | [p1; p2] -> mkand p2 p1
+	  | p :: ps -> mkand (xmkands ps) p in
+	let mkdist t1 t2 = Global.Distinct (t1, t2) in
+	let rec mkdists ts = 
+	  match ts with
+	  | [] -> assert false
+	  | [_] -> []
+	  | t :: ts -> List.map (mkdist t) ts @ mkdists ts in
+	let ts = List.map scope_term smtterms in
+	xmkands (List.rev (mkdists ts))
      | Ite (smtterm1, smtterm2, smtterm3) -> assert false
-				    
+						    
 let scope line =
   match line with
   | Line (name, rule, names, smtterms) ->
-     Global.Step (name, rule, names, List.map scope_prop smtterms)
+     let smtterms_unfold = List.map (unfold BindVarSet.empty) smtterms in
+     Global.Step (name, rule, names, List.map scope_prop smtterms_unfold)
