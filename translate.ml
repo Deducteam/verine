@@ -228,12 +228,29 @@ let translate_rule rule rulehyps concs =
     let (cprf, eq), hyps = 
       match List.rev chyps with h :: hs -> h, List.rev hs | _ -> assert false in
     (* Debug.eprintdksc "concs" concs "\n"; *)
-    let hs, n1 = mk_newvars "H" hyps n in                          (* xi = yi *)
+    let hs, n1 = mk_newvars "H" hyps n in       (* x'j = y'j where forall i exists j, 
+                                       (xi = x'j and yi = y'i) or (xi = y'j and yi = x'i)*)
     let f, xs, ys = 
       match eq with
       | Dkapp [Dkeq; Dkapp (fx :: xs); Dkapp (fy :: ys)] -> fx, xs, ys
       | _ -> assert false in
-    let prf = find_congruent hs f xs ys n1 in                      (* f(xs) = f(ys) *)
+    let eqprfs, n2 =                                                (* xi = yi *)
+      List.fold_left2 
+	(fun (eqprfs, n) x y -> 
+	 let rec findeq hhyps = 
+	   match hhyps with
+	   | [] -> assert false
+	   | (h, (_, Dkapp [Dknot; Dkapp [Dkeq; a; b]])) :: hhyps -> 
+	      if (x = a) && (y = b)
+	      then eqprfs@[h], n
+	      else if (x = b) && (y = a)
+	      then 
+		let eqprf, newn = find_symmetric h a b n in
+		eqprfs@[eqprf], newn
+	      else findeq hhyps
+	   | _ -> assert false in
+	 findeq (List.combine hs hyps)) ([], n1) xs ys in
+    let prf = find_congruent eqprfs f xs ys n2 in                      (* f(xs) = f(ys) *)
     let applylam prf h (cprf, neq) = 
       match neq with
       | Dkapp [Dknot; eq] -> mk_app2 cprf (mk_lam h (mk_prf eq) prf)
