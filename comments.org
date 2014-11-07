@@ -6,7 +6,6 @@
  - regrouper les mk_app2
  - revoir applylam
  - ajouter warning pour les règles non reconnues
- - eq_congruent_pred
 
 * Commmentaires
  - il existe un ordre strict sur les termes dans veriT 
@@ -25,3 +24,10 @@
  - enlever List.combine ?
  - attention aux Dk_app enchainés lors du pattern matching sur les dkterms
  - retirer des List.rev dans find_congruent pour rendre l'algorithme plus rapide
+* Resultats
+** VeriT timeout = 1s
+ - eq_diamond OK
+ - SEQ OK
+ - NEQ OK
+ - PEQ OK
+ - TypeSafe OK

@@ -64,7 +64,7 @@ all: verine logic.dko
 %.proof: %.smt2
 	timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< \
 	&& if [[ `cat $@` == 'Formula is Satisfiable' ]]; then rm $@; fi\
-	|| true
+	|| rm -f $@
 
 verine: *.ml *.mli *.mll *.mly
 	ocamlbuild verine.native
