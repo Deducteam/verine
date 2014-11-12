@@ -1,14 +1,10 @@
 open Printf
 
-type dkvar = string
+type var = string
 
-type dkterm = 
-  | Dkvar of dkvar
-  | Dklam of dkterm * dkterm * dkterm
-  | Dkapp of dkterm list
-  | Dkarrow of dkterm * dkterm
-  | Dktermtype
-  | Dkproptype
+type const = 
+  | Dkterm
+  | Dkprop
   | Dktrue
   | Dkfalse
   | Dknot
@@ -18,49 +14,52 @@ type dkterm =
   | Dkeq
   | Dkprf
 
-type dkline =
-  | Dkdecl of dkterm * dkterm
-  | Dkdeftype of dkterm * dkterm * dkterm
+type term = 
+  | Var of var
+  | Lam of var * term * term
+  | App of term list                (* at least two arguments, the first is not an App *)
+  | Arrow of term * term
+  | Const of const
+
+type line =
+  | Dkdecl of term * term
+  | Dkdeftype of term * term * term
   | Dkprelude of string
 
-let mk_var var = Dkvar var
-let mk_lam var t term = Dklam (var, t, term)
-let mk_lams vars types e = 
-  List.fold_left2 (fun term var t -> mk_lam var t term) e (List.rev vars) (List.rev types)
-let mk_app t ts = 
-  match ts with [] -> t | _ -> Dkapp (t :: ts)
-let mk_app2 t1 t2 = mk_app t1 [t2]
-let mk_app3 t1 t2 t3 = mk_app t1 [t2; t3]
-let mk_arrow t1 t2 = Dkarrow (t1, t2)
-let mk_termtype = Dktermtype
-let mk_proptype = Dkproptype
-let mk_true = Dktrue
-let mk_false = Dkfalse
-let mk_not term = mk_app2 Dknot term
-let mk_imply p q = mk_app3 Dkimply p q
-let mk_and p q = mk_app3 Dkand p q
-let mk_or p q = mk_app3 Dkor p q
-let mk_eq t1 t2 = mk_app3 Dkeq t1 t2
-let mk_prf t = mk_app2 Dkprf t
+let dkvar var = Var var
+let dklam var t term = Lam (var, t, term)
+let dklams vars types e = 
+  List.fold_left2 (fun term var t -> dklam var t term) e (List.rev vars) (List.rev types)
+let dkapp t ts = 
+  match t, ts with
+  | _, [] -> t
+  | App (us), _ -> App (us @ ts)
+  | _, _ -> App (t :: ts)
+let dkapp2 t1 t2 = dkapp t1 [t2]
+let dkapp3 t1 t2 t3 = dkapp t1 [t2; t3]
+let dkarrow t1 t2 = Arrow (t1, t2)
 
-let mk_decl t term = Dkdecl (t, term)
-let mk_deftype t termtype term = Dkdeftype (t, termtype, term)
-let mk_prelude name = Dkprelude (name)
+let dkterm = Const Dkterm
+let dkprop = Const Dkprop
+let dktrue = Const Dktrue
+let dkfalse = Const Dkfalse
+let dknot term = dkapp2 (Const Dknot) term
+let dkimply p q = dkapp3 (Const Dkimply) p q
+let dkand p q = dkapp3 (Const Dkand) p q
+let dkor p q = dkapp3 (Const Dkor) p q
+let dkeq t1 t2 = dkapp3 (Const Dkeq) t1 t2
+let dkprf t = dkapp2 (Const Dkprf) t
 
-let p_var out var = fprintf out "%s" var
+let dkdecl t term = Dkdecl (t, term)
+let dkdeftype t termtype term = Dkdeftype (t, termtype, term)
+let dkprelude name = Dkprelude (name)
 
-let rec p_term out term =
-  match term with
-  | Dkvar (var) -> p_var out var
-  | Dklam (t, t1, t2) -> 
-    fprintf out "%a: %a => %a"
-      p_term t p_term_p t1 p_term_p t2
-  | Dkapp (ts) -> p_terms out ts
-  | Dkarrow (t1, t2) ->
-    fprintf out "%a -> %a"
-      p_term_p t1 p_term_p t2
-  | Dktermtype -> output_string out "logic.Term"
-  | Dkproptype -> output_string out "logic.Prop"
+let print_var out var = fprintf out "%s" var
+
+let rec print_const out const =
+  match const with
+  | Dkterm -> output_string out "logic.Term"
+  | Dkprop -> output_string out "logic.Prop"
   | Dknot -> output_string out "logic.not"
   | Dkand -> output_string out "logic.and"
   | Dkor -> output_string out "logic.or"
@@ -70,29 +69,41 @@ let rec p_term out term =
   | Dkeq -> output_string out "logic.equal"
   | Dkprf -> output_string out "logic.prf"
 
-and p_term_p out term = 
+let rec print_term out term =
   match term with
-  | Dklam _ | Dkapp _ | Dkarrow _ ->
-    fprintf out "(%a)" p_term term
-  | _ -> p_term out term
+  | Var (var) -> print_var out var
+  | Lam (v, t1, t2) ->
+    fprintf out "%a: %a => %a"
+      print_var v print_term_p t1 print_term_p t2
+  | App (ts) -> print_terms out ts
+  | Arrow (t1, t2) ->
+    fprintf out "%a -> %a"
+      print_term_p t1 print_term_p t2
+  | Const c -> print_const out c
 
-and p_terms out terms = 
+and print_term_p out term = 
+  match term with
+  | Lam _ | App _ | Arrow _ ->
+    fprintf out "(%a)" print_term term
+  | _ -> print_term out term
+
+and print_terms out terms = 
   match terms with
   | [] -> ()
-  | [t] -> p_term_p out t
+  | [t] -> print_term_p out t
   | t :: q -> 
     fprintf out "%a %a"
-      p_term_p t p_terms q
+      print_term_p t print_terms q
 
-let p_line out line =
+let print_line out line =
   match line with
   | Dkdecl (t, term) -> 
     fprintf out "%a: %a.\n" 
-      p_term t
-      p_term term
+      print_term t
+      print_term term
   | Dkdeftype (t, typeterm, term) ->
     fprintf out "%a: %a:= %a.\n"
-      p_term t
-      p_term typeterm
-      p_term term
+      print_term t
+      print_term typeterm
+      print_term term
   | Dkprelude (name) -> fprintf out "#NAME %s.\n" name;

@@ -1,33 +1,34 @@
 (* AST corresponding to a Dedukti output *)
-type dkvar
-type dkterm
-type dkline
+type var = string
+type term
+type line
 
 (* constructor functions *)
-val mk_var : string -> dkterm
-val mk_lam : dkterm -> dkterm -> dkterm -> dkterm
-val mk_lams : dkterm list -> dkterm list -> dkterm -> dkterm
-val mk_app : dkterm -> dkterm list -> dkterm
-val mk_app2 : dkterm -> dkterm -> dkterm
-val mk_app3 : dkterm -> dkterm -> dkterm -> dkterm
-val mk_arrow : dkterm -> dkterm -> dkterm
-val mk_termtype : dkterm
-val mk_proptype : dkterm
-val mk_true : dkterm
-val mk_false : dkterm
-val mk_not : dkterm -> dkterm
-val mk_imply : dkterm -> dkterm -> dkterm
-val mk_and : dkterm -> dkterm -> dkterm
-val mk_or : dkterm -> dkterm -> dkterm
-val mk_eq : dkterm -> dkterm -> dkterm
-val mk_prf : dkterm -> dkterm
+val dkvar : var -> term
+val dklam : var -> term -> term -> term
+val dklams : var list -> term list -> term -> term
+val dkapp : term -> term list -> term
+val dkapp2 : term -> term -> term
+val dkapp3 : term -> term -> term -> term
+val dkarrow : term -> term -> term
 
-val mk_decl : dkterm -> dkterm -> dkline
-val mk_deftype : dkterm -> dkterm -> dkterm -> dkline
-val mk_prelude : string -> dkline
+val dkterm : term
+val dkprop : term
+val dktrue : term
+val dkfalse : term
+val dknot : term -> term
+val dkimply : term -> term -> term
+val dkand : term -> term -> term
+val dkor : term -> term -> term
+val dkeq : term -> term -> term
+val dkprf : term -> term
+
+val dkdecl : term -> term -> line
+val dkdeftype : term -> term -> term -> line
+val dkprelude : string -> line
 
 (* print functions *)
-val p_var : out_channel -> dkvar -> unit
-val p_term : out_channel -> dkterm -> unit
-val p_terms : out_channel -> dkterm list -> unit
-val p_line : out_channel -> dkline -> unit
+val print_var : out_channel -> var -> unit
+val print_term : out_channel -> term -> unit
+val print_terms : out_channel -> term list -> unit
+val print_line : out_channel -> line -> unit

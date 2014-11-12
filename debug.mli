@@ -5,10 +5,10 @@ val debugmode : bool ref
 val ddo : unit -> unit
 
 (* ddo print a dedukti term on stderr *)
-val dprintterm :  Dedukti.dkterm -> unit
+val dprintterm :  Dedukti.term -> unit
 
 (* ddo print a dedukti list on stderr *)
-val dprintlist :  Dedukti.dkterm list -> unit
+val dprintlist :  Dedukti.term list -> unit
 
 (* ddo print a dedukti list between two strings on stderr *)
-val dprintcontext : string -> Dedukti.dkterm list -> string -> unit
+val dprintcontext : string -> Dedukti.term list -> string -> unit
