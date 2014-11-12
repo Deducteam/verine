@@ -1,5 +1,5 @@
 %{
-  open Parsetree
+  open Trace
 %}
   
 %token OPEN
@@ -37,7 +37,7 @@
 %token EOF
 
 %start step
-%type <Parsetree.line> step
+%type <Trace.line> step
   
 %%
 
@@ -47,14 +47,14 @@ step :
 ;
 
 rule :
- | INPUT { Global.Input }
- | EQ_REFL { Global.Eq_reflexive }
- | EQ_TRANS { Global.Eq_transitive }
- | EQ_CONGR { Global.Eq_congruent }
- | RESOLUTION { Global.Resolution }
- | SYM { Global.Anonrule ($1) }
- | AND { Global.Anonrule ("and") }
- | OR { Global.Anonrule ("or") }
+ | INPUT { Input }
+ | EQ_REFL { Eq_reflexive }
+ | EQ_TRANS { Eq_transitive }
+ | EQ_CONGR { Eq_congruent }
+ | RESOLUTION { Resolution }
+ | SYM { Anonrule ($1) }
+ | AND { Anonrule ("and") }
+ | OR { Anonrule ("or") }
 
 clauses :
  | { [] }

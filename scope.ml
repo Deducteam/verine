@@ -1,4 +1,4 @@
-open Parsetree
+open Trace
 
 module BindVarSet = Map.Make (
   struct
@@ -55,26 +55,26 @@ let scope_symbol sym =
 let rec scope_term smtterm = 
   match smtterm with
   | Var (sym) -> 
-     Global.Var (scope_symbol sym)
+     Proof.Var (scope_symbol sym)
   | Fun (sym, smtterms) -> 
-     Global.Fun (scope_symbol sym, List.map scope_term smtterms)
+     Proof.Fun (scope_symbol sym, List.map scope_term smtterms)
   | Let (bindings, smtterm) -> assert false 
   | Core (smtcore) -> assert false
 
 let rec scope_prop smtterm = 
   match smtterm with
   | Var (sym) -> 
-     Global.Pred (scope_symbol sym, [])
+     Proof.Pred (scope_symbol sym, [])
   | Fun (sym, smtterms) -> 
-     Global.Pred (scope_symbol sym, List.map scope_term smtterms)
+     Proof.Pred (scope_symbol sym, List.map scope_term smtterms)
   | Let (bindings, smtterm) -> assert false
   | Core (smtcore) -> 
      match smtcore with
-     | True -> Global.True
-     | False -> Global.False
-     | Not (smtterm) -> Global.Not (scope_prop smtterm)
+     | True -> Proof.True
+     | False -> Proof.False
+     | Not (smtterm) -> Proof.Not (scope_prop smtterm)
      | Imply (smtterms) -> 
-	let mkimply p1 p2 = Global.Imply (p1, p2) in
+	let mkimply p1 p2 = Proof.Imply (p1, p2) in
 	let ps = List.map scope_prop smtterms in
 	let rec mkimplys ps = 
 	  match ps with
@@ -83,7 +83,7 @@ let rec scope_prop smtterm =
 	  | p :: ps -> mkimply p (mkimplys ps) in
 	mkimplys ps
      | And (smtterms) ->
-	let mkand p1 p2 = Global.And (p1, p2) in
+	let mkand p1 p2 = Proof.And (p1, p2) in
 	let ps = List.map scope_prop smtterms in
 	let rec xmkands ps = 
 	  match ps with
@@ -92,7 +92,7 @@ let rec scope_prop smtterm =
 	  | p :: ps -> mkand (xmkands ps) p in
 	xmkands (List.rev ps)
      | Or (smtterms) ->
-	let mkor p1 p2 = Global.Or (p1, p2) in
+	let mkor p1 p2 = Proof.Or (p1, p2) in
 	let ps = List.map scope_prop smtterms in
 	let rec xmkors ps = 
 	  match ps with
@@ -101,7 +101,7 @@ let rec scope_prop smtterm =
 	  | p :: ps -> mkor (xmkors ps) p in
 	xmkors (List.rev ps)
      | Xor (smtterms) ->
-	let mkxor p1 p2 = Global.Xor (p1, p2) in
+	let mkxor p1 p2 = Proof.Xor (p1, p2) in
 	let ps = List.map scope_prop smtterms in
 	let rec xmkxors ps = 
 	  match ps with
@@ -110,14 +110,14 @@ let rec scope_prop smtterm =
 	  | p :: ps -> mkxor (xmkxors ps) p in
 	xmkxors (List.rev ps)
      | Eq (smtterms) ->
-	let mkand p1 p2 = Global.And (p1, p2) in
+	let mkand p1 p2 = Proof.And (p1, p2) in
 	let rec xmkands ps = 
 	  match ps with
 	  | [] -> assert false
 	  | [p] -> p
 	  | [p1; p2] -> mkand p2 p1
 	  | p :: ps -> mkand (xmkands ps) p in
-	let mkeq t1 t2 = Global.Eq (t1, t2) in
+	let mkeq t1 t2 = Proof.Eq (t1, t2) in
 	let rec mkeqs ts =
 	  match ts with
 	  | [] | [_] -> assert false
@@ -127,14 +127,14 @@ let rec scope_prop smtterm =
 	let ts = List.map scope_term smtterms in
 	xmkands (List.rev (mkeqs ts))
      | Distinct (smtterms) -> 
-	let mkand p1 p2 = Global.And (p1, p2) in
+	let mkand p1 p2 = Proof.And (p1, p2) in
 	let rec xmkands ps = 
 	  match ps with
 	  | [] -> assert false
 	  | [p] -> p
 	  | [p1; p2] -> mkand p2 p1
 	  | p :: ps -> mkand (xmkands ps) p in
-	let mkdist t1 t2 = Global.Distinct (t1, t2) in
+	let mkdist t1 t2 = Proof.Distinct (t1, t2) in
 	let rec mkdists ts = 
 	  match ts with
 	  | [] -> assert false
@@ -148,4 +148,4 @@ let scope line =
   match line with
   | Line (name, rule, names, smtterms) ->
      let smtterms_unfold = List.map (unfold BindVarSet.empty) smtterms in
-     Global.Step (name, rule, names, List.map scope_prop smtterms_unfold)
+     Proof.Step (name, rule, names, List.map scope_prop smtterms_unfold)

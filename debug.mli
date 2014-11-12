@@ -1,5 +1,5 @@
 val debugmode : bool ref
-val eprintdk :  Dkterm.dkterm -> unit
-val eprintdks :  Dkterm.dkterm list -> unit
+val eprintdk :  Dedukti.dkterm -> unit
+val eprintdks :  Dedukti.dkterm list -> unit
 val eprints : string -> unit
-val eprintdksc : string -> Dkterm.dkterm list -> string -> unit
+val eprintdksc : string -> Dedukti.dkterm list -> string -> unit

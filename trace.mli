@@ -29,5 +29,13 @@ and smtcore =
   | Distinct of smtterm list
   | Ite of smtterm * smtterm * smtterm
 
+type rule = 
+  | Input
+  | Eq_reflexive
+  | Eq_transitive
+  | Eq_congruent
+  | Resolution
+  | Anonrule of string
+
 type line =
-  | Line of string * Global.rule * string list * smtterm list
+  | Line of string * rule * string list * smtterm list

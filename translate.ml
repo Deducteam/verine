@@ -1,5 +1,5 @@
-open Global
-open Dkterm
+open Proof
+open Dedukti
 
 module FreeVarSet = Set.Make (
   struct
@@ -205,11 +205,11 @@ let translate_rule rule rulehyps concs =
     mk_lams concvars 
 	    (List.map (fun p -> mk_prf (mk_not (translate_prop p))) concs) prf in
   match rule, rulehyps, (List.combine concvars concs) with
-  | Input, _, _ -> assert false
-  | Eq_reflexive, [], [cprf, Eq (x, _)] -> 
+  | Trace.Input, _, _ -> assert false
+  | Trace.Eq_reflexive, [], [cprf, Eq (x, _)] -> 
      let refl, _ = find_reflexive (translate_term x) n in
      useprf (mk_app2 cprf refl)
-  | Eq_transitive, [], chyps ->
+  | Trace.Eq_transitive, [], chyps ->
      let firstlasts l = match List.rev l with x :: xs -> List.rev xs, x | _ -> assert false in
      let hyps, hyp = firstlasts chyps in
      let pxys = 
@@ -229,7 +229,7 @@ let translate_rule rule rulehyps concs =
 	 List.fold_left2
 	   (fun prf h (cprf, p) -> mk_app2 cprf (mk_lam h (mk_prf p) prf)) 
 	   (mk_app2 cprf prf) hs cps)
-  | Eq_congruent, [], chyps ->
+  | Trace.Eq_congruent, [], chyps ->
      let (cprf, eq), hyps = 
        match List.rev chyps with 
        | h :: hs -> h, List.rev hs 
@@ -266,14 +266,14 @@ let translate_rule rule rulehyps concs =
        | Not eq -> mk_app2 cprf (mk_lam h (mk_prf (translate_prop eq)) prf)
        | _ -> assert false in
      useprf (List.fold_left2 applylam (mk_app2 cprf prf) hs hyps)
-  | Resolution, rh1 :: rh2 :: rhs, _ -> 
+  | Trace.Resolution, rh1 :: rh2 :: rhs, _ -> 
      let hyps = List.map 
 		  (fun (prf, ps) -> (fun hs -> mk_app prf hs), 
 				    List.map translate_prop ps) 
 		  rulehyps in
      useprf ((find_resolution hyps n) concvars)
-  | Anonrule (name), _, _ -> raise FoundAxiom
-  | _, _, _ -> raise FoundRuleError
+  | Trace.Anonrule (name), _, _ -> raise Global.FoundAxiom
+  | _, _, _ -> raise Global.FoundRuleError
 
 let rec translate_step dkinputvars dkinputconcvars step env =
   match step with
@@ -296,7 +296,7 @@ let rec translate_step dkinputvars dkinputconcvars step env =
 	  (mk_app (mk_var name) dkinputvars, concs) env in 
       line, newenv
     with
-    | FoundAxiom -> 
+    | Global.FoundAxiom -> 
       let proved = 
 	List.fold_left 
 	  (fun q p -> mk_imply p q) (mk_clause dkconcs)
@@ -357,7 +357,7 @@ let translate_input input env =
   | Step (name, Input, [], concs) -> 
     mk_var name, mk_var ("P"^name), 
     PrfEnvMap.add name (mk_var name, concs) env
-  | _ -> raise FoundRuleError
+  | _ -> raise Global.FoundRuleError
 
 let print_prelude out env inputs dkinputconcvars = 
   let freevars = 

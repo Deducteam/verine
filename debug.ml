@@ -5,7 +5,7 @@ let eprints s =
     
 let eprintdk term = 
   if !debugmode then (
-    Dkterm.p_term stderr term;
+    Dedukti.p_term stderr term;
     eprints "")
     
 let eprintdks terms = 

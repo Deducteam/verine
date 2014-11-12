@@ -1,3 +1,3 @@
 val convert : string -> string
 
-val scope : Parsetree.line -> Global.step
+val scope : Trace.line -> Proof.step

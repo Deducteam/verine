@@ -1,5 +1,5 @@
 {
-  open Parseprf
+  open Parser
   open Lexing
 } 
 

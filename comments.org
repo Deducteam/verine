@@ -1,7 +1,6 @@
 #+Title: Comments
 
 * A faire
- - explications générales, sur résolution et sur eq_transitive
  - enlever les open
  - regrouper les mk_app2
  - revoir applylam
