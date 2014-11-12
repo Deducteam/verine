@@ -1,29 +1,10 @@
 (* AST corresponding to a Dedukti output *)
-type dkvar = string
-
-type dkterm = private
-  | Dkvar of dkvar
-  | Dklam of dkterm * dkterm * dkterm
-  | Dkapp of dkterm list
-  | Dkarrow of dkterm * dkterm
-  | Dktermtype
-  | Dkproptype
-  | Dktrue
-  | Dkfalse
-  | Dknot
-  | Dkimply
-  | Dkand
-  | Dkor
-  | Dkeq
-  | Dkprf
-
-type dkline = private
-  | Dkdecl of dkterm * dkterm
-  | Dkdeftype of dkterm * dkterm * dkterm
-  | Dkprelude of string
+type dkvar
+type dkterm
+type dkline
 
 (* constructor functions *)
-val mk_var : dkvar -> dkterm
+val mk_var : string -> dkterm
 val mk_lam : dkterm -> dkterm -> dkterm -> dkterm
 val mk_lams : dkterm list -> dkterm list -> dkterm -> dkterm
 val mk_app : dkterm -> dkterm list -> dkterm

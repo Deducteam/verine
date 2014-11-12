@@ -1,8 +1,8 @@
 #+Title: Comments
 
 * A faire
- - regrouper les mk_app2
- - revoir applylam
+ - commenter mlis
+ - revoir mls
  - ajouter warning pour les règles non reconnues
 
 * Commmentaires
