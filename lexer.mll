@@ -4,8 +4,7 @@
 } 
 
 let space = [' ' '\t']
-let num = ['0'-'9']+
-let ident = ['a'-'z' ] ['a'-'z' '_' '0'-'9']*
+let digits = ['0'-'9']+
 let symbol = 
   ['a'-'z' 'A'-'Z' '+' '-' '/' '*' '=' '%' '?' '!' '.' '$' '_' '~' '&' '^' '<' '>' '@']
   ['0'-'9' 'a'-'z' 'A'-'Z' '+' '-' '/' '*' '=' '%' '?' '!' '.' '$' '_' '~' '&' '^' '<' '>' '@']*
@@ -33,7 +32,7 @@ rule token = parse
   | "ite"                { ITE }
 
   | "set"                { SET }
-  | ".c" (num as s)      { STEP ("C"^s) }
+  | ".c" (digits as s)      { STEP ("C"^s) }
   | "input"              { INPUT }
   | "eq_reflexive"       { EQ_REFL }
   | "eq_transitive"      { EQ_TRANS }
@@ -42,7 +41,7 @@ rule token = parse
   | ":conclusion"        { CONCLUSION }
   | ":clauses"           { CLAUSES }
   | symbol as s          { SYM s }
-  | _                    { let (s, l, c) = Global.loc_err lexbuf in
-raise ( Global.LexerError (s, l, c) ) }
+  | _                    { let (s, l, c) = Error.loc_err lexbuf in
+raise ( Error.LexerError (s, l, c) ) }
   | eof                  { EOF }
       

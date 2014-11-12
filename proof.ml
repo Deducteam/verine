@@ -17,5 +17,13 @@ type prop =
 
 type rulename = string
 
+type rule = 
+  | Input
+  | Eq_reflexive
+  | Eq_transitive
+  | Eq_congruent
+  | Resolution
+  | Anonrule of string
+
 type step =
-  | Step of rulename * Trace.rule * rulename list * prop list
+  | Step of rulename * rule * rulename list * prop list

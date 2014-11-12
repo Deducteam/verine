@@ -10,7 +10,7 @@ let parse_and_run out lexbuf =
   try 
     let inputstep step = 
       match step with 
-      | Proof.Step (_, Trace.Input, _, _) -> true
+      | Proof.Step (_, Proof.Input, _, _) -> true
       | _ -> false in
     let rec parse_and_run_step dkinputvars dkinputconcvars env =
       let step = Scope.scope (Parser.step Lexer.token lexbuf) in
@@ -37,13 +37,13 @@ let parse_and_run out lexbuf =
 	  run_step step dkinputvars dkinputconcvars env end in
     parse_and_run_input [] [] [] Translate.PrfEnvMap.empty      
   with 
-  | Global.EndOfFile -> ()
+  | Error.EndOfFile -> ()
   | Parsing.Parse_error -> 
-    let (s, l, c) = Global.loc_err lexbuf in
-    raise (Global.ParserError (s, l, c))
-  | Global.FoundRuleError ->
-    let (_, l, _) = Global.loc_err lexbuf in
-    raise (Global.RuleError l)
+    let (s, l, c) = Error.loc_err lexbuf in
+    raise (Error.ParserError (s, l, c))
+  | Error.FoundRuleError ->
+    let (_, l, _) = Error.loc_err lexbuf in
+    raise (Error.RuleError l)
 
 let translate_file file = 
   match !filename with
@@ -63,6 +63,6 @@ let () =
   try
     Arg.parse argspec translate_file umsg;
   with
-  | Global.LexerError (s, l, c ) -> Global.error l c (sprintf "Unexpected character '%s'"s)
-  | Global.ParserError (s, l, c ) -> Global.error l c (sprintf "Unexpected token '%s'"s)
-  | Global.RuleError l -> Global.error l 1 ("Unexpected rule structure")
+  | Error.LexerError (s, l, c ) -> Error.error l c (sprintf "Unexpected character '%s'"s)
+  | Error.ParserError (s, l, c ) -> Error.error l c (sprintf "Unexpected token '%s'"s)
+  | Error.RuleError l -> Error.error l 1 ("Unexpected rule structure")

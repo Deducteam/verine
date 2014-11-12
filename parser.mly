@@ -1,5 +1,5 @@
 %{
-  open Trace
+  module Tr = Trace
 %}
   
 %token OPEN
@@ -42,19 +42,19 @@
 %%
 
 step :
- | OPEN SET STEP OPEN rule clauses conclusion CLOSE CLOSE { Line ($3, $5, $6, $7) }
- | EOF { raise Global.EndOfFile }
+ | OPEN SET STEP OPEN rule clauses conclusion CLOSE CLOSE { Tr.Line ($3, $5, $6, $7) }
+ | EOF { raise Error.EndOfFile }
 ;
 
 rule :
- | INPUT { Input }
- | EQ_REFL { Eq_reflexive }
- | EQ_TRANS { Eq_transitive }
- | EQ_CONGR { Eq_congruent }
- | RESOLUTION { Resolution }
- | SYM { Anonrule ($1) }
- | AND { Anonrule ("and") }
- | OR { Anonrule ("or") }
+ | INPUT { Tr.Input }
+ | EQ_REFL { Tr.Eq_reflexive }
+ | EQ_TRANS { Tr.Eq_transitive }
+ | EQ_CONGR { Tr.Eq_congruent }
+ | RESOLUTION { Tr.Resolution }
+ | SYM { Tr.Anonrule ($1) }
+ | AND { Tr.Anonrule ("and") }
+ | OR { Tr.Anonrule ("or") }
 
 clauses :
  | { [] }
@@ -68,20 +68,20 @@ smtterms :
  | smtterm smtterms { $1 :: $2 }
 
 smtterm :
- | SYM { Var (Symbol $1) }
- | OPEN SYM smtterms CLOSE { Fun (Symbol $2, $3) }
- | OPEN LET OPEN smtvarbindings CLOSE smtterm CLOSE { Let ($4, $6) }
- | TRUE { Core (True) }
- | FALSE { Core (False) }
- | OPEN NOT smtterm CLOSE  { Core (Not $3) }
- | OPEN IMPLY smtterms CLOSE { Core (Imply $3) }
- | OPEN AND smtterms CLOSE { Core (And $3) }
- | OPEN OR smtterms CLOSE { Core (Or $3) }
- | OPEN XOR smtterms CLOSE { Core (Xor $3) }
- | OPEN EQ smtterms CLOSE { Core (Eq $3) }
- | OPEN DISTINCT smtterms CLOSE { Core (Distinct $3) }
+ | SYM { Tr.Var (Tr.Symbol $1) }
+ | OPEN SYM smtterms CLOSE { Tr.Fun (Tr.Symbol $2, $3) }
+ | OPEN LET OPEN smtvarbindings CLOSE smtterm CLOSE { Tr.Let ($4, $6) }
+ | TRUE { Tr.Core (Tr.True) }
+ | FALSE { Tr.Core (Tr.False) }
+ | OPEN NOT smtterm CLOSE  { Tr.Core (Tr.Not $3) }
+ | OPEN IMPLY smtterms CLOSE { Tr.Core (Tr.Imply $3) }
+ | OPEN AND smtterms CLOSE { Tr.Core (Tr.And $3) }
+ | OPEN OR smtterms CLOSE { Tr.Core (Tr.Or $3) }
+ | OPEN XOR smtterms CLOSE { Tr.Core (Tr.Xor $3) }
+ | OPEN EQ smtterms CLOSE { Tr.Core (Tr.Eq $3) }
+ | OPEN DISTINCT smtterms CLOSE { Tr.Core (Tr.Distinct $3) }
  | OPEN ITE smtterm smtterm smtterm CLOSE 
-	{ Core (Ite ($3, $4, $5)) }
+	{ Tr.Core (Tr.Ite ($3, $4, $5)) }
 
 stepids :
  | { [] }
@@ -92,6 +92,6 @@ smtvarbindings :
  | smtvarbinding smtvarbindings { $1 :: $2 }
 
 smtvarbinding :
- | OPEN SYM smtterm CLOSE { Varbinding (Symbol $2, $3) }
+ | OPEN SYM smtterm CLOSE { Tr.Varbinding (Tr.Symbol $2, $3) }
 
 %%

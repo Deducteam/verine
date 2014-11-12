@@ -1,7 +1,6 @@
 #+Title: Comments
 
 * A faire
- - enlever les open
  - regrouper les mk_app2
  - revoir applylam
  - ajouter warning pour les règles non reconnues

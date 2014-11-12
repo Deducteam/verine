@@ -1,9 +1,9 @@
-open Proof
-open Dedukti
+module Dk = Dedukti
+module Pr = Proof
 
 module FreeVarSet = Set.Make (
   struct
-    type t = dkterm * dkterm
+    type t = Dk.dkterm * Dk.dkterm
     let compare = Pervasives.compare
   end)
   
@@ -14,7 +14,7 @@ module PrfEnvMap = Map.Make (
   end)
 
 let mk_newvar s n = 
-  mk_var (s^(string_of_int n)), n+1
+  Dk.mk_var (s^(string_of_int n)), n+1
 
 let mk_newvars s l n =
   let vars, newn = 
@@ -25,8 +25,8 @@ let mk_newvars s l n =
 
 let rec mk_clause props = 
   match props with
-  | p :: ps -> mk_imply (mk_not p) (mk_clause ps)
-  | [] -> mk_false
+  | p :: ps -> Dk.mk_imply (Dk.mk_not p) (mk_clause ps)
+  | [] -> Dk.mk_false
 
 (* *** TRANSLATION OF EQUALITIES *** *)
 
@@ -34,14 +34,14 @@ let rec mk_clause props =
 let find_reflexive x n =
   let p, n1 = mk_newvar "P" n in  
   let h, newn = mk_newvar "H" n1 in 
-  mk_lam p (mk_arrow mk_termtype mk_proptype)
-    (mk_lam h (mk_prf (mk_app2 p x)) h), newn
+  Dk.mk_lam p (Dk.mk_arrow Dk.mk_termtype Dk.mk_proptype)
+    (Dk.mk_lam h (Dk.mk_prf (Dk.mk_app2 p x)) h), newn
 
 (* from h a proof of x = y, returns a proof of y = x *)
 let find_symmetric h x y n =
   let refl, n1 = find_reflexive x n in
   let t, newn = mk_newvar "T" n1 in
-  mk_app3 h (mk_lam t mk_termtype (mk_eq t x)) refl, newn
+  Dk.mk_app3 h (Dk.mk_lam t Dk.mk_termtype (Dk.mk_eq t x)) refl, newn
 
 (* from:
    - xi, yi such that x1 = y1, x2 = y2, x3 = y3 are of the form 
@@ -52,13 +52,13 @@ let rec find_transitive prf1 prf2 x1 y1 x2 y2 x3 y3 n =
   let t, n1 = mk_newvar "T" n in
   match y3 = y2, y3 = y1, x2 = x1 with
   | true, _, true ->             (* case y = x, y = z, x = z *)
-    mk_app3 prf1 (mk_lam t mk_termtype (mk_eq t y3)) prf2, n1
+    Dk.mk_app3 prf1 (Dk.mk_lam t Dk.mk_termtype (Dk.mk_eq t y3)) prf2, n1
   | true, _, false ->            (* case x = y, y = z, x = z *)
-    mk_app3 prf2 (mk_lam t mk_termtype (mk_eq x3 t)) prf1, n1
+    Dk.mk_app3 prf2 (Dk.mk_lam t Dk.mk_termtype (Dk.mk_eq x3 t)) prf1, n1
   | false, true, true ->         (* case y = x, y = z, z = x *)
-    mk_app3 prf2 (mk_lam t mk_termtype (mk_eq t y3)) prf1, n1
+    Dk.mk_app3 prf2 (Dk.mk_lam t Dk.mk_termtype (Dk.mk_eq t y3)) prf1, n1
   | false, true, false ->        (* case y = x, z = y, z = x *)
-    mk_app3 prf1 (mk_lam t mk_termtype (mk_eq x3 t)) prf2, n1
+    Dk.mk_app3 prf1 (Dk.mk_lam t Dk.mk_termtype (Dk.mk_eq x3 t)) prf2, n1
   | false, false, _ -> 
     match y3 = x1 with
     | true ->                    (* case x = y, _ = _, z = x: use a proof of y = x *)
@@ -77,28 +77,28 @@ let rec find_transitives prfs xys x y n =
     let prf, xy, n3 =
       match x1 = x2, x1 = y2, y1 = x2 with
       | true, _, _ ->                (* case y = x, y = z *)
-	mk_app3 prf1 (mk_lam t mk_termtype (mk_eq t y2)) prf2, (y1, y2), n1
+	Dk.mk_app3 prf1 (Dk.mk_lam t Dk.mk_termtype (Dk.mk_eq t y2)) prf2, (y1, y2), n1
       | false, true, _ ->            (* case y = x, z = y *)
-	mk_app3 prf1 (mk_lam t mk_termtype (mk_eq x2 t)) prf2, (x2, y1), n1
+	Dk.mk_app3 prf1 (Dk.mk_lam t Dk.mk_termtype (Dk.mk_eq x2 t)) prf2, (x2, y1), n1
       | false, false, true ->        (* case x = y, y = z *)
-	mk_app3 prf2 (mk_lam t mk_termtype (mk_eq x1 t)) prf1, (x1, y2), n1
+	Dk.mk_app3 prf2 (Dk.mk_lam t Dk.mk_termtype (Dk.mk_eq x1 t)) prf1, (x1, y2), n1
       | false, false, false ->       (* case x = y, z = y: use a proof of y = x *)
 	let sym, n2 = find_symmetric prf1 x1 y1 n1 in
-	mk_app3 sym (mk_lam t mk_termtype (mk_eq x2 t)) prf2, (x2, x1), n2 in
+	Dk.mk_app3 sym (Dk.mk_lam t Dk.mk_termtype (Dk.mk_eq x2 t)) prf2, (x2, x1), n2 in
     find_transitives (prf :: ps) (xy :: vs) x y n3
   | _, _ -> assert false
     
 (* from hs, xs and ys such that for each i, hi is a proof of xi = yi, 
    returns a proof of f(xs) = f(ys) *)
 let find_congruent hs f xs ys n =
-  let tx = mk_app f xs in
+  let tx = Dk.mk_app f xs in
   let z, n1 = mk_newvar "T" n in
   let refl, _ = find_reflexive tx n1 in      (* tx = tx *)
   let onestep (prf,ys,xxs) h y =             (* tx = f(ys,x,xs) => tx = f(ys,y,xs) *)
     match xxs with
     | x :: xs ->
-      let tz = mk_app f (ys@[z]@xs) in
-      mk_app3 h	(mk_lam z mk_termtype (mk_eq tx tz)) prf, (ys@[y]), xs 
+      let tz = Dk.mk_app f (ys@[z]@xs) in
+      Dk.mk_app3 h	(Dk.mk_lam z Dk.mk_termtype (Dk.mk_eq tx tz)) prf, (ys@[y]), xs 
     | _ -> assert false in
   let prf, _, _ = List.fold_left2 onestep (refl,[],xs) hs ys in
   prf
@@ -115,9 +115,9 @@ exception NotFound
 let find_split p1s p2s =
   let rec xfind_split p1h p1t p2h p2t =
     match p1t, p2t with
-    | (Dkapp [Dknot; p]) :: p1t', p2 :: p2t' when (p = p2) ->
+    | (Dk.Dkapp [Dk.Dknot; p]) :: p1t', p2 :: p2t' when (p = p2) ->
       true, p, p1h, p1t', p2h, p2t'
-    | p1 :: p1t', (Dkapp [Dknot; p]) :: p2t' when (p = p1) ->
+    | p1 :: p1t', (Dk.Dkapp [Dk.Dknot; p]) :: p2t' when (p = p1) ->
       false, p, p1h, p1t', p2h, p2t'
     | p1 :: p1', p2 :: p2t' ->
       xfind_split p1h p1t (p2 :: p2h) p2t'
@@ -168,10 +168,10 @@ let rec find_resolution hyps n =
 	    match l1@l2 with (q, x) :: _ -> x | _ -> assert false ) xp2t in
 	match b with
 	| true ->
-	  fun1 (v1h @ [mk_lam h (mk_prf (mk_not p)) (
+	  fun1 (v1h @ [Dk.mk_lam h (Dk.mk_prf (Dk.mk_not p)) (
 	    fun2 (xv2h @ [h] @ xv2t))] @ v1t)
 	| false -> 
-	  fun2 (xv2h @ [mk_lam h (mk_prf (mk_not p)) (
+	  fun2 (xv2h @ [Dk.mk_lam h (Dk.mk_prf (Dk.mk_not p)) (
 	    fun1 (v1h @ [h] @ v1t))] @ xv2t) in
     find_resolution ((newfun, p1h@p1t@p2h@p2t) :: hyps) newn
   | [func, _] -> func
@@ -181,55 +181,55 @@ let rec find_resolution hyps n =
 	
 let rec translate_term term =
   match term with
-  | Var (s) -> mk_var s
-  | Fun (s, ts) -> mk_app (mk_var s) (List.map translate_term ts)
+  | Pr.Var (s) -> Dk.mk_var s
+  | Pr.Fun (s, ts) -> Dk.mk_app (Dk.mk_var s) (List.map translate_term ts)
 
 let rec translate_prop prop =
   match prop with
-  | True -> mk_true
-  | False -> mk_false
-  | Not (p) -> mk_not (translate_prop p)
-  | Imply (p, q) -> mk_imply (translate_prop p) (translate_prop q)
-  | And (p, q) -> mk_and (translate_prop p) (translate_prop q)
-  | Or (p, q) -> mk_or (translate_prop p) (translate_prop q)
-  | Xor (p, q) -> assert false
-  | Eq (x, y) -> mk_eq (translate_term x) (translate_term y)
-  | Distinct (x, y) -> mk_not (mk_eq (translate_term x) (translate_term y))
-  | Ite (p, x, y) -> assert false
-  | Pred (s, ts) -> mk_app 
-    (mk_var (s^(string_of_int (List.length ts)))) (List.map translate_term ts)
+  | Pr.True -> Dk.mk_true
+  | Pr.False -> Dk.mk_false
+  | Pr.Not (p) -> Dk.mk_not (translate_prop p)
+  | Pr.Imply (p, q) -> Dk.mk_imply (translate_prop p) (translate_prop q)
+  | Pr.And (p, q) -> Dk.mk_and (translate_prop p) (translate_prop q)
+  | Pr.Or (p, q) -> Dk.mk_or (translate_prop p) (translate_prop q)
+  | Pr.Xor (p, q) -> assert false
+  | Pr.Eq (x, y) -> Dk.mk_eq (translate_term x) (translate_term y)
+  | Pr.Distinct (x, y) -> Dk.mk_not (Dk.mk_eq (translate_term x) (translate_term y))
+  | Pr.Ite (p, x, y) -> assert false
+  | Pr.Pred (s, ts) -> Dk.mk_app 
+    (Dk.mk_var (s^(string_of_int (List.length ts)))) (List.map translate_term ts)
 
 let translate_rule rule rulehyps concs = 
   let concvars, n = mk_newvars "H" concs 1 in
   let useprf prf =
-    mk_lams concvars 
-	    (List.map (fun p -> mk_prf (mk_not (translate_prop p))) concs) prf in
+    Dk.mk_lams concvars 
+	    (List.map (fun p -> Dk.mk_prf (Dk.mk_not (translate_prop p))) concs) prf in
   match rule, rulehyps, (List.combine concvars concs) with
-  | Trace.Input, _, _ -> assert false
-  | Trace.Eq_reflexive, [], [cprf, Eq (x, _)] -> 
+  | Pr.Input, _, _ -> assert false
+  | Pr.Eq_reflexive, [], [cprf, Pr.Eq (x, _)] -> 
      let refl, _ = find_reflexive (translate_term x) n in
-     useprf (mk_app2 cprf refl)
-  | Trace.Eq_transitive, [], chyps ->
+     useprf (Dk.mk_app2 cprf refl)
+  | Pr.Eq_transitive, [], chyps ->
      let firstlasts l = match List.rev l with x :: xs -> List.rev xs, x | _ -> assert false in
      let hyps, hyp = firstlasts chyps in
      let pxys = 
        List.map 
 	 (fun (v, t) -> 
 	  match t with 
-	  | Not ( Eq (x, y) as p) -> 
+	  | Pr.Not ( Pr.Eq (x, y) as p) -> 
 	     (v, translate_prop p), (translate_term x, translate_term y) 
 	  | _ -> assert false) hyps in
      let cprf, x, y = match hyp with 
-	 cprf, Eq (x,  y) -> cprf, translate_term x, translate_term y 
+	 cprf, Pr.Eq (x,  y) -> cprf, translate_term x, translate_term y 
        | _ -> assert false in
      let cps, xys = List.split pxys in
      let hs, n1 = mk_newvars "H" cps n in
      let prf, _ = find_transitives hs xys x y n1 in
      useprf (
 	 List.fold_left2
-	   (fun prf h (cprf, p) -> mk_app2 cprf (mk_lam h (mk_prf p) prf)) 
-	   (mk_app2 cprf prf) hs cps)
-  | Trace.Eq_congruent, [], chyps ->
+	   (fun prf h (cprf, p) -> Dk.mk_app2 cprf (Dk.mk_lam h (Dk.mk_prf p) prf)) 
+	   (Dk.mk_app2 cprf prf) hs cps)
+  | Pr.Eq_congruent, [], chyps ->
      let (cprf, eq), hyps = 
        match List.rev chyps with 
        | h :: hs -> h, List.rev hs 
@@ -239,8 +239,8 @@ let translate_rule rule rulehyps concs =
                                        (xi = x'j and yi = y'i) or (xi = y'j and yi = x'i)*)
      let f, xs, ys = 
        match eq with
-       | Eq (Fun (fx, xs), Fun (fy, ys)) -> 
-	  mk_var fx, xs, ys
+       | Pr.Eq (Pr.Fun (fx, xs), Pr.Fun (fy, ys)) -> 
+	  Dk.mk_var fx, xs, ys
        | _ -> assert false in
      let eqprfs, n2 =                                                (* xi = yi *)
        List.fold_left2 
@@ -248,7 +248,7 @@ let translate_rule rule rulehyps concs =
 	  let rec findeq hhyps = 
 	    match hhyps with
 	    | [] -> assert false
-	    | (h, (_, Not (Eq (a, b)))) :: hhyps -> 
+	    | (h, (_, Pr.Not (Pr.Eq (a, b)))) :: hhyps -> 
 	       if (x = a) && (y = b)
 	       then eqprfs@[h], n
 	       else if (x = b) && (y = a)
@@ -263,21 +263,21 @@ let translate_rule rule rulehyps concs =
                       (* f(xs) = f(ys) *)
      let applylam prf h (cprf, neq) = 
        match neq with
-       | Not eq -> mk_app2 cprf (mk_lam h (mk_prf (translate_prop eq)) prf)
+       | Pr.Not eq -> Dk.mk_app2 cprf (Dk.mk_lam h (Dk.mk_prf (translate_prop eq)) prf)
        | _ -> assert false in
-     useprf (List.fold_left2 applylam (mk_app2 cprf prf) hs hyps)
-  | Trace.Resolution, rh1 :: rh2 :: rhs, _ -> 
+     useprf (List.fold_left2 applylam (Dk.mk_app2 cprf prf) hs hyps)
+  | Pr.Resolution, rh1 :: rh2 :: rhs, _ -> 
      let hyps = List.map 
-		  (fun (prf, ps) -> (fun hs -> mk_app prf hs), 
+		  (fun (prf, ps) -> (fun hs -> Dk.mk_app prf hs), 
 				    List.map translate_prop ps) 
 		  rulehyps in
      useprf ((find_resolution hyps n) concvars)
-  | Trace.Anonrule (name), _, _ -> raise Global.FoundAxiom
-  | _, _, _ -> raise Global.FoundRuleError
+  | Pr.Anonrule (name), _, _ -> raise Error.FoundAxiom
+  | _, _, _ -> raise Error.FoundRuleError
 
 let rec translate_step dkinputvars dkinputconcvars step env =
   match step with
-  | Step (name, rule, hyps, concs) -> 
+  | Pr.Step (name, rule, hyps, concs) -> 
     let rulehyps = List.map 
       (fun hyp -> 
        PrfEnvMap.find hyp env) hyps in
@@ -286,78 +286,78 @@ let rec translate_step dkinputvars dkinputconcvars step env =
       let prf = translate_rule rule rulehyps concs in
       let proved = 
 	List.fold_left 
-	  (fun q p -> mk_imply p q) (mk_clause dkconcs)
+	  (fun q p -> Dk.mk_imply p q) (mk_clause dkconcs)
 	  (List.rev dkinputconcvars) in
       let line =
-	mk_deftype (mk_var name) (mk_prf proved) 
-	  (mk_lams dkinputvars (List.map mk_prf dkinputconcvars) prf) in
+	Dk.mk_deftype (Dk.mk_var name) (Dk.mk_prf proved) 
+	  (Dk.mk_lams dkinputvars (List.map Dk.mk_prf dkinputconcvars) prf) in
       let newenv =
 	PrfEnvMap.add name
-	  (mk_app (mk_var name) dkinputvars, concs) env in 
+	  (Dk.mk_app (Dk.mk_var name) dkinputvars, concs) env in 
       line, newenv
     with
-    | Global.FoundAxiom -> 
+    | Error.FoundAxiom -> 
       let proved = 
 	List.fold_left 
-	  (fun q p -> mk_imply p q) (mk_clause dkconcs)
+	  (fun q p -> Dk.mk_imply p q) (mk_clause dkconcs)
 	  (List.rev dkinputconcvars) in
-      let line = mk_decl (mk_var name) (mk_prf proved) in
+      let line = Dk.mk_decl (Dk.mk_var name) (Dk.mk_prf proved) in
       let newenv = 
 	PrfEnvMap.add name
-	  (mk_app (mk_var name) dkinputvars, concs) env in
+	  (Dk.mk_app (Dk.mk_var name) dkinputvars, concs) env in
       line, newenv
 
 let print_step out line =
-  p_line out line
+  Dk.p_line out line
 
 (* *** FIND FREE VARIABLES *** *)
 
 let rec get_vars_term varenv term =
   match term with
-  | Var (s) -> 
-    FreeVarSet.add (mk_var s, mk_termtype) varenv
-  | Fun (s, ts) -> 
+  | Pr.Var (s) -> 
+    FreeVarSet.add (Dk.mk_var s, Dk.mk_termtype) varenv
+  | Pr.Fun (s, ts) -> 
     let newenv, typ = 
       List.fold_left 
 	(fun (env, typ) t -> 
-	  get_vars_term env t, mk_arrow mk_termtype typ)
-	(varenv, mk_termtype) ts in
-    FreeVarSet.add (mk_var s, typ) newenv
+	  get_vars_term env t, Dk.mk_arrow Dk.mk_termtype typ)
+	(varenv, Dk.mk_termtype) ts in
+    FreeVarSet.add (Dk.mk_var s, typ) newenv
 
 let rec get_vars_prop varenv prop =
   match prop with
-  | True -> varenv
-  | False -> varenv
-  | Not (p) -> get_vars_prop varenv p
-  | Imply (p, q) -> get_vars_prop (get_vars_prop varenv p) q
-  | And (p, q) -> get_vars_prop (get_vars_prop varenv p) q
-  | Or (p, q) -> get_vars_prop (get_vars_prop varenv p) q
-  | Xor (p, q) -> get_vars_prop (get_vars_prop varenv p) q
-  | Eq (t1, t2) -> get_vars_term (get_vars_term varenv t1) t2
-  | Distinct (t1, t2) -> get_vars_term (get_vars_term varenv t1) t2
-  | Ite (p, t1, t2) -> assert false
-  | Pred (s, ts) -> 
+  | Pr.True -> varenv
+  | Pr.False -> varenv
+  | Pr.Not (p) -> get_vars_prop varenv p
+  | Pr.Imply (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Pr.And (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Pr.Or (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Pr.Xor (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Pr.Eq (t1, t2) -> get_vars_term (get_vars_term varenv t1) t2
+  | Pr.Distinct (t1, t2) -> get_vars_term (get_vars_term varenv t1) t2
+  | Pr.Ite (p, t1, t2) -> assert false
+  | Pr.Pred (s, ts) -> 
     let newenv, typ =
       List.fold_left
 	(fun (env, typ) t ->
-	  get_vars_term env t, mk_arrow mk_termtype typ)
-	(varenv, mk_proptype) ts in
+	  get_vars_term env t, Dk.mk_arrow Dk.mk_termtype typ)
+	(varenv, Dk.mk_proptype) ts in
     FreeVarSet.add 
-      (mk_var (s^(string_of_int (List.length ts))), typ) newenv
+      (Dk.mk_var (s^(string_of_int (List.length ts))), typ) newenv
 
 let get_vars varenv step = 
   match step with
-  | Step (_, _, _, concs) -> 
+  | Pr.Step (_, _, _, concs) -> 
     List.fold_left get_vars_prop varenv concs
 
 (* *** TRANSLATE INPUT *** *)
 
 let translate_input input env =
   match input with 
-  | Step (name, Input, [], concs) -> 
-    mk_var name, mk_var ("P"^name), 
-    PrfEnvMap.add name (mk_var name, concs) env
-  | _ -> raise Global.FoundRuleError
+  | Pr.Step (name, Pr.Input, [], concs) -> 
+    Dk.mk_var name, Dk.mk_var ("P"^name), 
+    PrfEnvMap.add name (Dk.mk_var name, concs) env
+  | _ -> raise Error.FoundRuleError
 
 let print_prelude out env inputs dkinputconcvars = 
   let freevars = 
@@ -366,12 +366,12 @@ let print_prelude out env inputs dkinputconcvars =
        List.fold_left get_vars_prop freevars concs) 
       env FreeVarSet.empty in
   FreeVarSet.iter
-    (fun (var, typ) -> p_line out (mk_decl var typ)) freevars;
+    (fun (var, typ) -> Dk.p_line out (Dk.mk_decl var typ)) freevars;
   List.iter2
     (fun input dkinputconcvar ->
      match input with 
-     | Step (_, _, _, concs) -> 
+     | Pr.Step (_, _, _, concs) -> 
 	let dkconcs = List.map translate_prop concs in
 	let dkinput = mk_clause dkconcs in
-     p_line out (mk_deftype dkinputconcvar mk_proptype dkinput))
+     Dk.p_line out (Dk.mk_deftype dkinputconcvar Dk.mk_proptype dkinput))
     inputs dkinputconcvars
