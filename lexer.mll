@@ -32,7 +32,7 @@ rule token = parse
   | "ite"                { ITE }
 
   | "set"                { SET }
-  | ".c" (digits as s)      { STEP ("C"^s) }
+  | ".c" (digits as s)   { STEP ("C"^s) }
   | "input"              { INPUT }
   | "eq_reflexive"       { EQ_REFL }
   | "eq_transitive"      { EQ_TRANS }
@@ -41,7 +41,7 @@ rule token = parse
   | ":conclusion"        { CONCLUSION }
   | ":clauses"           { CLAUSES }
   | symbol as s          { SYM s }
-  | _                    { let (s, l, c) = Error.loc_err lexbuf in
-raise ( Error.LexerError (s, l, c) ) }
   | eof                  { EOF }
+  | _                    { let (s, l, c) = Error.loc_err lexbuf in
+			   raise (Error.LexerError (s, l, c) ) }
       

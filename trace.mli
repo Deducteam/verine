@@ -1,13 +1,8 @@
+(* AST corresponding to veriT proof traces, using smtlib2 terms *)
+
 type symbol =
   | Symbol of string
 
-(* Missing *)
-(* spec_constants  *)
-(* qualidentifier: (as identifier sort) *)
-(* identifier: (_ symbol numeral+) *)
-(* forall *)
-(* exists *)
-(* bang *)
 type smtterm =
   | Var of symbol
   | Fun of symbol * smtterm list
@@ -35,7 +30,7 @@ type rule =
   | Eq_transitive
   | Eq_congruent
   | Resolution
-  | Anonrule of string
+  | Unknown of string
 
-type line =
-  | Line of string * rule * string list * smtterm list
+type step =
+  | Step of string * rule * string list * smtterm list

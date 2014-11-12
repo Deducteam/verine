@@ -1,23 +1,28 @@
 let debugmode = ref false
 
-let eprints s = 
-  if !debugmode then Printf.eprintf "%s%!" s
+let printterm t = 
+  Dedukti.p_term stderr t
+	 
+let printlist ts = 
+  let rec xeprintdks ts =
+    match ts with
+    | [] -> ()
+    | t :: ts -> 
+       printterm t; 
+       List.iter 
+	 (fun t -> Printf.eprintf " | "; printterm t) ts in
+  Printf.eprintf "[ ";
+  xeprintdks ts;
+  Printf.eprintf " ]"
+  
+let printcontext s1 ts s2 = 
+  Printf.eprintf "%s" s1; printlist ts; Printf.eprintf "%s" s2
+
+let ddo f = 
+  if !debugmode then ( f; Printf.eprintf "%!" )
+
+let dprintterm t = ddo (printterm t)
     
-let eprintdk term = 
-  if !debugmode then (
-    Dedukti.p_term stderr term;
-    eprints "")
-    
-let eprintdks terms = 
-  if !debugmode then (
-    let rec xeprintdks terms =
-      match terms with
-      | [] -> ()
-      | t :: ts -> eprintdk t; 
-	List.iter (fun t -> eprints " | "; eprintdk t) ts in
-    eprints "[";
-    xeprintdks terms;
-    eprints "]";)
-    
-let eprintdksc s1 ts s2 = 
-  if !debugmode then (eprints s1; eprintdks ts; eprints s2)
+let dprintlist ts = ddo (printlist ts)
+      
+let dprintcontext s1 ts s2 = ddo (printcontext s1 ts s2)

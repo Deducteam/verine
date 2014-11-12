@@ -152,10 +152,10 @@ let scope_rule rule =
   | Tr.Eq_transitive -> Pr.Eq_transitive
   | Tr.Eq_congruent -> Pr.Eq_congruent
   | Tr.Resolution -> Pr.Resolution
-  | Tr.Anonrule s -> Pr.Anonrule s
+  | Tr.Unknown s -> Pr.Unknown s
 					    
-let scope line =
-  match line with
-  | Tr.Line (name, rule, names, smtterms) ->
+let scope step =
+  match step with
+  | Tr.Step (name, rule, names, smtterms) ->
      let smtterms_unfold = List.map (unfold BindVarSet.empty) smtterms in
      Pr.Step (name, scope_rule rule, names, List.map scope_prop smtterms_unfold)

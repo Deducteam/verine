@@ -24,7 +24,7 @@ type rule =
   | Eq_transitive
   | Eq_congruent
   | Resolution
-  | Anonrule of string
+  | Unknown of string
 
 type step =
   | Step of rulename * rule * rulename list * prop list

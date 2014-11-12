@@ -37,12 +37,12 @@
 %token EOF
 
 %start step
-%type <Trace.line> step
+%type <Trace.step> step
   
 %%
 
 step :
- | OPEN SET STEP OPEN rule clauses conclusion CLOSE CLOSE { Tr.Line ($3, $5, $6, $7) }
+ | OPEN SET STEP OPEN rule clauses conclusion CLOSE CLOSE { Tr.Step ($3, $5, $6, $7) }
  | EOF { raise Error.EndOfFile }
 ;
 
@@ -52,9 +52,9 @@ rule :
  | EQ_TRANS { Tr.Eq_transitive }
  | EQ_CONGR { Tr.Eq_congruent }
  | RESOLUTION { Tr.Resolution }
- | SYM { Tr.Anonrule ($1) }
- | AND { Tr.Anonrule ("and") }
- | OR { Tr.Anonrule ("or") }
+ | SYM { Tr.Unknown $1 }
+ | AND { Tr.Unknown "and" }
+ | OR { Tr.Unknown "or" }
 
 clauses :
  | { [] }
@@ -80,8 +80,7 @@ smtterm :
  | OPEN XOR smtterms CLOSE { Tr.Core (Tr.Xor $3) }
  | OPEN EQ smtterms CLOSE { Tr.Core (Tr.Eq $3) }
  | OPEN DISTINCT smtterms CLOSE { Tr.Core (Tr.Distinct $3) }
- | OPEN ITE smtterm smtterm smtterm CLOSE 
-	{ Tr.Core (Tr.Ite ($3, $4, $5)) }
+ | OPEN ITE smtterm smtterm smtterm CLOSE { Tr.Core (Tr.Ite ($3, $4, $5)) }
 
 stepids :
  | { [] }

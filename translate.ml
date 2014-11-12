@@ -235,7 +235,6 @@ let translate_rule rule rulehyps concs =
        match List.rev chyps with 
        | h :: hs -> h, List.rev hs 
        | _ -> assert false in
-     (* Debug.eprintdksc "concs" concs "\n"; *)
      let hs, n1 = mk_newvars "H" hyps n in       (* x'j = y'j where forall i exists j, 
                                        (xi = x'j and yi = y'i) or (xi = y'j and yi = x'i)*)
      let f, xs, ys = 
@@ -273,7 +272,7 @@ let translate_rule rule rulehyps concs =
 	 (fun (prf, ps) -> (fun hs -> Dk.mk_app prf hs), ps) 
 		  rulehyps in
      useprf ((find_resolution hyps n) concvars)
-  | Pr.Anonrule (name), _, _ -> raise Error.FoundAxiom
+  | Pr.Unknown (name), _, _ -> raise Error.FoundAxiom
   | _, _, _ -> raise Error.FoundRuleError
 
 let rec translate_step dkinputvars dkinputconcvars step env =

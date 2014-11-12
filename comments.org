@@ -2,14 +2,24 @@
 
 * A faire
  - commenter mlis
- - revoir mls
- - ajouter warning pour les règles non reconnues
+   dedukti.mli
+   error.mli
+   proof.mli
+   scope.mli
+   translate.mli
+ - revoir 
+   dedukti.ml
+   error.ml
+   proof.ml
+   scope.ml
+   translate.ml
+   verine.ml
+   Makefile
+ - ajouter un warning pour les règles non reconnues
 
 * Commmentaires
  - il existe un ordre strict sur les termes dans veriT 
    utilisé pour orienter les égalités
- - on suppose dans congruence que l'orientation x = y 
-   implique l'orientation f(_,x,_) = f(_,y,_)
  - on suppose que la conclusion de l'input contient 
    toutes les variables libres de la preuve
  - on suppose que l'ordre des propositions est conservé 
@@ -19,9 +29,7 @@
    p est dans ci et non p est dans c(i+1) ou inversement
 
 * Pour plus tard
- - enlever List.combine ?
  - attention aux Dk_app enchainés lors du pattern matching sur les dkterms
- - retirer des List.rev dans find_congruent pour rendre l'algorithme plus rapide
 * Resultats
 ** VeriT timeout = 1s
  - eq_diamond OK
