@@ -203,65 +203,75 @@ let translate_rule rule rulehyps concs =
   let concvars, n = mk_newvars "H" concs 1 in
   let useprf prf =
     mk_lams concvars 
-      (List.map (fun p -> mk_prf (mk_not p)) concs) prf in
+	    (List.map (fun p -> mk_prf (mk_not (translate_prop p))) concs) prf in
   match rule, rulehyps, (List.combine concvars concs) with
   | Input, _, _ -> assert false
-  | Eq_reflexive, [], [cprf, Dkapp [Dkeq; x; _]] -> 
-    let refl, _ = find_reflexive x n in
-    useprf (mk_app2 cprf refl)
+  | Eq_reflexive, [], [cprf, Eq (x, _)] -> 
+     let refl, _ = find_reflexive (translate_term x) n in
+     useprf (mk_app2 cprf refl)
   | Eq_transitive, [], chyps ->
-    let firstlasts l = match List.rev l with x :: xs -> List.rev xs, x | _ -> assert false in
-    let hyps, hyp = firstlasts chyps in
-    let pxys = List.map 
-      (fun (v, t) -> match t with 
-	Dkapp [Dknot; Dkapp [Dkeq; x; y] as p] -> (v, p), (x, y) | _ -> assert false) hyps in
-    let cprf, x, y = match hyp with 
-	cprf, Dkapp [Dkeq; x; y] -> cprf, x, y | _ -> assert false in
-    let cps, xys = List.split pxys in
-    let hs, n1 = mk_newvars "H" cps n in
-    let prf, _ = find_transitives hs xys x y n1 in
-    useprf (
-	List.fold_left2
-	  (fun prf h (cprf, p) -> mk_app2 cprf (mk_lam h (mk_prf p) prf)) 
-	  (mk_app2 cprf prf) hs cps)
+     let firstlasts l = match List.rev l with x :: xs -> List.rev xs, x | _ -> assert false in
+     let hyps, hyp = firstlasts chyps in
+     let pxys = 
+       List.map 
+	 (fun (v, t) -> 
+	  match t with 
+	  | Not ( Eq (x, y) as p) -> 
+	     (v, translate_prop p), (translate_term x, translate_term y) 
+	  | _ -> assert false) hyps in
+     let cprf, x, y = match hyp with 
+	 cprf, Eq (x,  y) -> cprf, translate_term x, translate_term y 
+       | _ -> assert false in
+     let cps, xys = List.split pxys in
+     let hs, n1 = mk_newvars "H" cps n in
+     let prf, _ = find_transitives hs xys x y n1 in
+     useprf (
+	 List.fold_left2
+	   (fun prf h (cprf, p) -> mk_app2 cprf (mk_lam h (mk_prf p) prf)) 
+	   (mk_app2 cprf prf) hs cps)
   | Eq_congruent, [], chyps ->
-    let (cprf, eq), hyps = 
-      match List.rev chyps with h :: hs -> h, List.rev hs | _ -> assert false in
-    (* Debug.eprintdksc "concs" concs "\n"; *)
-    let hs, n1 = mk_newvars "H" hyps n in       (* x'j = y'j where forall i exists j, 
+     let (cprf, eq), hyps = 
+       match List.rev chyps with 
+       | h :: hs -> h, List.rev hs 
+       | _ -> assert false in
+     (* Debug.eprintdksc "concs" concs "\n"; *)
+     let hs, n1 = mk_newvars "H" hyps n in       (* x'j = y'j where forall i exists j, 
                                        (xi = x'j and yi = y'i) or (xi = y'j and yi = x'i)*)
-    let f, xs, ys = 
-      match eq with
-      | Dkapp [Dkeq; Dkapp (fx :: xs); Dkapp (fy :: ys)] -> fx, xs, ys
-      | _ -> assert false in
-    let eqprfs, n2 =                                                (* xi = yi *)
-      List.fold_left2 
-	(fun (eqprfs, n) x y -> 
-	 let rec findeq hhyps = 
-	   match hhyps with
-	   | [] -> assert false
-	   | (h, (_, Dkapp [Dknot; Dkapp [Dkeq; a; b]])) :: hhyps -> 
-	      if (x = a) && (y = b)
-	      then eqprfs@[h], n
-	      else if (x = b) && (y = a)
-	      then 
-		let eqprf, newn = find_symmetric h a b n in
-		eqprfs@[eqprf], newn
-	      else findeq hhyps
-	   | _ -> assert false in
-	 findeq (List.combine hs hyps)) ([], n1) xs ys in
-    let prf = find_congruent eqprfs f xs ys n2 in                      (* f(xs) = f(ys) *)
-    let applylam prf h (cprf, neq) = 
-      match neq with
-      | Dkapp [Dknot; eq] -> mk_app2 cprf (mk_lam h (mk_prf eq) prf)
-      | _ -> assert false in
-    useprf (List.fold_left2 applylam (mk_app2 cprf prf) hs hyps)
+     let f, xs, ys = 
+       match eq with
+       | Eq (Fun (fx, xs), Fun (fy, ys)) -> 
+	  mk_var fx, xs, ys
+       | _ -> assert false in
+     let eqprfs, n2 =                                                (* xi = yi *)
+       List.fold_left2 
+	 (fun (eqprfs, n) x y -> 
+	  let rec findeq hhyps = 
+	    match hhyps with
+	    | [] -> assert false
+	    | (h, (_, Not (Eq (a, b)))) :: hhyps -> 
+	       if (x = a) && (y = b)
+	       then eqprfs@[h], n
+	       else if (x = b) && (y = a)
+	       then 
+		 let eqprf, newn = find_symmetric h (translate_term a) (translate_term b) n in
+		 eqprfs@[eqprf], newn
+	       else findeq hhyps
+	    | _ -> assert false in
+	  findeq (List.combine hs hyps)) ([], n1) xs ys in
+     let prf = 
+       find_congruent eqprfs f (List.map translate_term xs) (List.map translate_term ys) n2 in
+                      (* f(xs) = f(ys) *)
+     let applylam prf h (cprf, neq) = 
+       match neq with
+       | Not eq -> mk_app2 cprf (mk_lam h (mk_prf (translate_prop eq)) prf)
+       | _ -> assert false in
+     useprf (List.fold_left2 applylam (mk_app2 cprf prf) hs hyps)
   | Resolution, rh1 :: rh2 :: rhs, _ -> 
-    let hyps = List.map 
-      (fun (prf, ps) -> (fun hs -> mk_app prf hs), 
-			List.map translate_prop ps) 
-      rulehyps in
-    useprf ((find_resolution hyps n) concvars)
+     let hyps = List.map 
+		  (fun (prf, ps) -> (fun hs -> mk_app prf hs), 
+				    List.map translate_prop ps) 
+		  rulehyps in
+     useprf ((find_resolution hyps n) concvars)
   | Anonrule (name), _, _ -> raise FoundAxiom
   | _, _, _ -> raise FoundRuleError
 
@@ -273,7 +283,7 @@ let rec translate_step dkinputvars dkinputconcvars step env =
        PrfEnvMap.find hyp env) hyps in
     let dkconcs = List.map translate_prop concs in
     try
-      let prf = translate_rule rule rulehyps dkconcs in
+      let prf = translate_rule rule rulehyps concs in
       let proved = 
 	List.fold_left 
 	  (fun q p -> mk_imply p q) (mk_clause dkconcs)
