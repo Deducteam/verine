@@ -272,7 +272,7 @@ let translate_rule rule rulehyps concs =
 	 (fun (prf, ps) -> (fun hs -> Dk.mk_app prf hs), ps) 
 		  rulehyps in
      useprf ((find_resolution hyps n) concvars)
-  | Pr.Unknown (name), _, _ -> raise Error.FoundAxiom
+  | Pr.Unknown (name), _, _ -> raise Error.Axiom
   | _, _, _ -> raise Error.FoundRuleError
 
 let rec translate_step dkinputvars dkinputconcvars step env =
@@ -296,7 +296,7 @@ let rec translate_step dkinputvars dkinputconcvars step env =
 	  (Dk.mk_app (Dk.mk_var name) dkinputvars, concs) env in 
       line, newenv
     with
-    | Error.FoundAxiom -> 
+    | Error.Axiom -> 
       let proved = 
 	List.fold_left 
 	  (fun q p -> Dk.mk_imply p q) (mk_clause dkconcs)

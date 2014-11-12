@@ -39,10 +39,10 @@ let parse_and_run out lexbuf =
   with 
   | Error.EndOfFile -> ()
   | Parsing.Parse_error -> 
-    let (s, l, c) = Error.loc_err lexbuf in
+    let (s, l, c) = Error.get_location lexbuf in
     raise (Error.ParserError (s, l, c))
   | Error.FoundRuleError ->
-    let (_, l, _) = Error.loc_err lexbuf in
+     let l = Error.get_line lexbuf in
     raise (Error.RuleError l)
 
 let translate_file file = 
@@ -63,6 +63,9 @@ let () =
   try
     Arg.parse argspec translate_file umsg;
   with
-  | Error.LexerError (s, l, c ) -> Error.error l c (sprintf "Unexpected character '%s'"s)
-  | Error.ParserError (s, l, c ) -> Error.error l c (sprintf "Unexpected token '%s'"s)
-  | Error.RuleError l -> Error.error l 1 ("Unexpected rule structure")
+  | Error.LexerError (s, l, c ) -> 
+     Error.print_location_error l c (sprintf "Unexpected character '%s'"s)
+  | Error.ParserError (s, l, c ) -> 
+     Error.print_location_error l c (sprintf "Unexpected token '%s'"s)
+  | Error.RuleError l -> 
+     Error.print_line_error l ("Unexpected rule structure")

@@ -42,6 +42,6 @@ rule token = parse
   | ":clauses"           { CLAUSES }
   | symbol as s          { SYM s }
   | eof                  { EOF }
-  | _                    { let (s, l, c) = Error.loc_err lexbuf in
+  | _                    { let (s, l, c) = Error.get_location lexbuf in
 			   raise (Error.LexerError (s, l, c) ) }
       
