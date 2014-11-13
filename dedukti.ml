@@ -26,33 +26,33 @@ type line =
   | Dkdeftype of term * term * term
   | Dkprelude of string
 
-let dkvar var = Var var
-let dklam var t term = Lam (var, t, term)
-let dklams vars types e = 
-  List.fold_left2 (fun term var t -> dklam var t term) e (List.rev vars) (List.rev types)
-let dkapp t ts = 
+let var var = Var var
+let lam var t term = Lam (var, t, term)
+let lams vars types e = 
+  List.fold_left2 (fun term var t -> lam var t term) e (List.rev vars) (List.rev types)
+let app t ts = 
   match t, ts with
   | _, [] -> t
   | App (us), _ -> App (us @ ts)
   | _, _ -> App (t :: ts)
-let dkapp2 t1 t2 = dkapp t1 [t2]
-let dkapp3 t1 t2 t3 = dkapp t1 [t2; t3]
-let dkarrow t1 t2 = Arrow (t1, t2)
+let app2 t1 t2 = app t1 [t2]
+let app3 t1 t2 t3 = app t1 [t2; t3]
+let arrow t1 t2 = Arrow (t1, t2)
 
-let dkterm = Const Dkterm
-let dkprop = Const Dkprop
-let dktrue = Const Dktrue
-let dkfalse = Const Dkfalse
-let dknot term = dkapp2 (Const Dknot) term
-let dkimply p q = dkapp3 (Const Dkimply) p q
-let dkand p q = dkapp3 (Const Dkand) p q
-let dkor p q = dkapp3 (Const Dkor) p q
-let dkeq t1 t2 = dkapp3 (Const Dkeq) t1 t2
-let dkprf t = dkapp2 (Const Dkprf) t
+let l_term = Const Dkterm
+let l_prop = Const Dkprop
+let l_true = Const Dktrue
+let l_false = Const Dkfalse
+let l_not p = app2 (Const Dknot) p
+let l_imply p q = app3 (Const Dkimply) p q
+let l_and p q = app3 (Const Dkand) p q
+let l_or p q = app3 (Const Dkor) p q
+let l_eq t1 t2 = app3 (Const Dkeq) t1 t2
+let l_prf t = app2 (Const Dkprf) t
 
-let dkdecl t term = Dkdecl (t, term)
-let dkdeftype t termtype term = Dkdeftype (t, termtype, term)
-let dkprelude name = Dkprelude (name)
+let declaration t term = Dkdecl (t, term)
+let definition t termtype term = Dkdeftype (t, termtype, term)
+let prelude name = Dkprelude (name)
 
 let print_var out var = fprintf out "%s" var
 

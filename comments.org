@@ -2,7 +2,6 @@
 
 * A faire
  - commenter mlis
-   dedukti.mli
    proof.mli
    scope.mli
    translate.mli

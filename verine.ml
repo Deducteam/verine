@@ -56,7 +56,7 @@ let translate_file file =
     let chan = open_in file in
     let lexbuf = Lexing.from_channel chan in
     let out = stdout in
-    Dedukti.print_line out (Dedukti.dkprelude name);
+    Dedukti.print_line out (Dedukti.prelude name);
     parse_and_run out lexbuf
      
 let () =
