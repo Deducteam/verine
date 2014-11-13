@@ -3,16 +3,16 @@ open Printf
 type var = string
 
 type const = 
-  | Dkterm
-  | Dkprop
-  | Dktrue
-  | Dkfalse
-  | Dknot
-  | Dkimply
-  | Dkand
-  | Dkor
-  | Dkeq
-  | Dkprf
+  | Lterm
+  | Lprop
+  | Ltrue
+  | Lfalse
+  | Lnot
+  | Limply
+  | Land
+  | Lor
+  | Leq
+  | Lprf
 
 type term = 
   | Var of var
@@ -22,9 +22,9 @@ type term =
   | Const of const
 
 type line =
-  | Dkdecl of term * term
-  | Dkdeftype of term * term * term
-  | Dkprelude of string
+  | Declaration of term * term
+  | Definition of term * term * term
+  | Prelude of string
 
 let var var = Var var
 let lam var t term = Lam (var, t, term)
@@ -39,35 +39,35 @@ let app2 t1 t2 = app t1 [t2]
 let app3 t1 t2 t3 = app t1 [t2; t3]
 let arrow t1 t2 = Arrow (t1, t2)
 
-let l_term = Const Dkterm
-let l_prop = Const Dkprop
-let l_true = Const Dktrue
-let l_false = Const Dkfalse
-let l_not p = app2 (Const Dknot) p
-let l_imply p q = app3 (Const Dkimply) p q
-let l_and p q = app3 (Const Dkand) p q
-let l_or p q = app3 (Const Dkor) p q
-let l_eq t1 t2 = app3 (Const Dkeq) t1 t2
-let l_prf t = app2 (Const Dkprf) t
+let l_term = Const Lterm
+let l_prop = Const Lprop
+let l_true = Const Ltrue
+let l_false = Const Lfalse
+let l_not p = app2 (Const Lnot) p
+let l_imply p q = app3 (Const Limply) p q
+let l_and p q = app3 (Const Land) p q
+let l_or p q = app3 (Const Lor) p q
+let l_eq t1 t2 = app3 (Const Leq) t1 t2
+let l_prf t = app2 (Const Lprf) t
 
-let declaration t term = Dkdecl (t, term)
-let definition t termtype term = Dkdeftype (t, termtype, term)
-let prelude name = Dkprelude (name)
+let declaration t term = Declaration (t, term)
+let definition t termtype term = Definition (t, termtype, term)
+let prelude name = Prelude (name)
 
 let print_var out var = fprintf out "%s" var
 
 let rec print_const out const =
   match const with
-  | Dkterm -> output_string out "logic.Term"
-  | Dkprop -> output_string out "logic.Prop"
-  | Dknot -> output_string out "logic.not"
-  | Dkand -> output_string out "logic.and"
-  | Dkor -> output_string out "logic.or"
-  | Dkimply -> output_string out "logic.imply"
-  | Dktrue -> output_string out "logic.True"
-  | Dkfalse -> output_string out "logic.False"
-  | Dkeq -> output_string out "logic.equal"
-  | Dkprf -> output_string out "logic.prf"
+  | Lterm -> output_string out "logic.Term"
+  | Lprop -> output_string out "logic.Prop"
+  | Lnot -> output_string out "logic.not"
+  | Land -> output_string out "logic.and"
+  | Lor -> output_string out "logic.or"
+  | Limply -> output_string out "logic.imply"
+  | Ltrue -> output_string out "logic.True"
+  | Lfalse -> output_string out "logic.False"
+  | Leq -> output_string out "logic.equal"
+  | Lprf -> output_string out "logic.prf"
 
 let rec print_term out term =
   match term with
@@ -97,13 +97,13 @@ and print_terms out terms =
 
 let print_line out line =
   match line with
-  | Dkdecl (t, term) -> 
+  | Declaration (t, term) -> 
     fprintf out "%a: %a.\n" 
       print_term t
       print_term term
-  | Dkdeftype (t, typeterm, term) ->
+  | Definition (t, typeterm, term) ->
     fprintf out "%a: %a:= %a.\n"
       print_term t
       print_term typeterm
       print_term term
-  | Dkprelude (name) -> fprintf out "#NAME %s.\n" name;
+  | Prelude (name) -> fprintf out "#NAME %s.\n" name;

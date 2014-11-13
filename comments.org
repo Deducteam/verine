@@ -6,7 +6,6 @@
    scope.mli
    translate.mli
  - revoir 
-   dedukti.ml
    proof.ml
    scope.ml
    translate.ml
