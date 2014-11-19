@@ -94,7 +94,7 @@ $(BENCHDIR)/.dummy:
 cleanbench:
 	rm -fr bench
 
-stats: $(STATDIR)/.dummy
+stats:
 	make cleanbench
 	make bench
 	rm -rf $(STATFILES)
@@ -113,7 +113,3 @@ stats: $(STATDIR)/.dummy
 	/usr/bin/time --quiet -f "Total dkcheck time: %U" -a -o $(STATFILES)/global make bench
 	 echo "Number of checked .dk files: "`find $(BENCHDIR) -name "*.dk" | wc -w` \
 		>> $(STATFILES)/global
-
-$(STATDIR)/.dummy:
-	[ -e $(STATDIR) ] || mkdir $(STATDIR)
-	touch $(STATDIR)/.dummy
