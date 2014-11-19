@@ -1,0 +1,7 @@
+Number of tested .smt2 files: 100
+Total veriT time: 4.53
+Number of produced .proof files: 11
+Total verine time: 2.61
+Number of produced .dk files: 11
+Total dkcheck time: 5.21
+Number of checked .dk files: 11

@@ -1,0 +1,12 @@
+File,User time,Exit status
+bench/eq_diamond/408012/eq_diamond11.proof,1.41,0
+bench/eq_diamond/408065/eq_diamond6.proof,0.02,0
+bench/eq_diamond/408098/eq_diamond9.proof,0.29,0
+bench/eq_diamond/408010/eq_diamond10.proof,0.63,0
+bench/eq_diamond/408054/eq_diamond5.proof,0.01,0
+bench/eq_diamond/408076/eq_diamond7.proof,0.07,0
+bench/eq_diamond/408032/eq_diamond3.proof,0.00,0
+bench/eq_diamond/408009/eq_diamond1.proof,0.00,0
+bench/eq_diamond/408087/eq_diamond8.proof,0.14,0
+bench/eq_diamond/408043/eq_diamond4.proof,0.00,0
+bench/eq_diamond/408021/eq_diamond2.proof,0.00,0

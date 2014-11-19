@@ -26,23 +26,25 @@
 #  - make fichier.dk pour créer un dk et le vérifier
 
 SHELL = /bin/bash
-
 VERINEFLAGS =
 TESTDIR = test
 TESTSMTS = $(wildcard $(TESTDIR)/*.smt2)
 TESTDKCS = $(TESTSMTS:.smt2=.dkc)
 SMTLIBDIR = smtlib2/QF_UF/eq_diamond
 BENCHDIR = bench
-# Relative path from SMTLIBDIR to BENCHDIR
-# RELDIR = ../../bench
-BENCHSMTS = $(wildcard $(BENCHDIR)/*.smt2)
-BENCHPRFS = $(BENCHSMTS:.smt2=.proof)
-BENCHPROVED = $(wildcard $(BENCHDIR)/*.proof)
-BENCHDKTS = $(BENCHPROVED:.proof=.dkt)
-VERITTIMEOUT = 0.1
+BENCHSMTS = $(shell find $(BENCHDIR) -name "*.smt2")
+BENCHPRFS_NEEDED = $(BENCHSMTS:.smt2=.proof)
+BENCHPRFS = $(shell find $(BENCHDIR) -name "*.proof")
+BENCHDKS_NEEDED = $(BENCHPRFS:.proof=.dk)
+BENCHDKS = $(shell find $(BENCHDIR) -name "*.dk")
+BENCHDKTS_NEEDED = $(BENCHDKS:.dk=.dkt)
+VERITTIMEOUT = 0.05
 VERINETIMEOUT = 3
+DKCHECKTIMEOUT = 5
+STATDIR = stats
+STATFILES = $(STATDIR)/$(shell echo -n `date --iso-8601`_smtlibdir_`basename $(SMTLIBDIR)`_veriT_$(VERITTIMEOUT)_verine_$(VERINETIMEOUT)_dkcheck_$(DKCHECKTIMEOUT))
 
-.PHONY: all clean test cleantest bench cleanbench cleanbenchsmt2 cleanbenchproof cleanbenchdk
+.PHONY: all clean test cleantest bench cleanbench stats
 
 .PRECIOUS: %.proof %.dk
 
@@ -55,16 +57,19 @@ all: verine logic.dko
 	@./verine $(VERINEFLAGS) $< | dkcheck -stdin || true
 
 %.dkt: %.dk
-	dkcheck $< || true
+	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/details_dkcheck \
+		timeout $(DKCHECKTIMEOUT) dkcheck $< || rm -f $< $*.proof $*.smt2
 
 #%dk : ne prend pas en compte logic.dk (voir 4))
 %.dk: %.proof verine
-	timeout $(VERINETIMEOUT) ./verine $(VERINEFLAGS) $< > $@ || rm -f $@
+	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/details_verine \
+		timeout $(VERINETIMEOUT) ./verine $(VERINEFLAGS) $< > $@ || rm -f $@ $< $*.smt2
 
 %.proof: %.smt2
-	timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< \
-	&& if [[ `cat $@` == 'Formula is Satisfiable' ]]; then rm $@; fi\
-	|| rm -f $@
+	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/details_veriT \
+		timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< \
+	&& if [[ `cat $@` == 'Formula is Satisfiable' ]]; then rm $@ $<; fi \
+	|| { rm -f $@ $<; }
 
 verine: *.ml *.mli *.mll *.mly
 	ocamlbuild verine.native
@@ -79,20 +84,36 @@ test: verine logic.dko $(TESTDKCS)
 cleantest:
 	rm -f $(TESTDIR)/*.dk
 
-bench: verine logic.dko $(BENCHDIR)/.dummy $(BENCHPRFS) $(BENCHDKTS)
+bench: verine logic.dko $(BENCHDIR)/.dummy $(BENCHPRFS_NEEDED) $(BENCHDKS_NEEDED) $(BENCHDKTS_NEEDED)
 
 $(BENCHDIR)/.dummy:
-	for f in $(SMTLIBDIR)/*/*.smt2; do cp $$f $(BENCHDIR); done
+	[ -e $(BENCHDIR) ] || mkdir $(BENCHDIR)
+	cp -r $(SMTLIBDIR) $(BENCHDIR)
 	touch $(BENCHDIR)/.dummy
 
-cleanbench: cleanbenchsmt2 cleanbenchproof cleanbenchdk
+cleanbench:
+	rm -fr bench
 
-cleanbenchsmt2:
-	rm -f $(BENCHDIR)/*.smt2
+stats: $(STATDIR)/.dummy
+	make cleanbench
+	make bench
+	rm -rf $(STATFILES)
+	mkdir $(STATFILES)
+	echo "File,User time,Exit status" > $(STATFILES)/details_veriT
+	echo "File,User time,Exit status" > $(STATFILES)/details_verine
+	echo "File,User time,Exit status" > $(STATFILES)/details_dkcheck
+	echo "Number of tested .smt2 files: "`find $(BENCHDIR) -name "*.smt2" | wc -w` \
+		>> $(STATFILES)/global
+	/usr/bin/time --quiet -f "Total veriT time: %U" -a -o $(STATFILES)/global make bench
+	echo "Number of produced .proof files: "`find $(BENCHDIR) -name "*.proof" | wc -w` \
+	 	>> $(STATFILES)/global
+	/usr/bin/time --quiet -f "Total verine time: %U" -a -o $(STATFILES)/global make bench
+	echo "Number of produced .dk files: "`find $(BENCHDIR) -name "*.dk" | wc -w` \
+		>> $(STATFILES)/global
+	/usr/bin/time --quiet -f "Total dkcheck time: %U" -a -o $(STATFILES)/global make bench
+	 echo "Number of checked .dk files: "`find $(BENCHDIR) -name "*.dk" | wc -w` \
+		>> $(STATFILES)/global
 
-cleanbenchproof:
-	rm -f $(BENCHDIR)/*.dummy
-	rm -f $(BENCHDIR)/*.proof
-
-cleanbenchdk:
-	rm -f $(BENCHDIR)/*.dk
+$(STATDIR)/.dummy:
+	[ -e $(STATDIR) ] || mkdir $(STATDIR)
+	touch $(STATDIR)/.dummy

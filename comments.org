@@ -1,7 +1,9 @@
 #+Title: Comments
 
 * A faire
+ - ajouter un traducteur de smtlib2
  - commenter mlis
+   trace.mli
    proof.mli
    scope.mli
    translate.mli
