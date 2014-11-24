@@ -57,16 +57,16 @@ all: verine logic.dko
 	@./verine $(VERINEFLAGS) $< | dkcheck -stdin || true
 
 %.dkt: %.dk
-	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/details_dkcheck \
+	/usr/bin/time --quiet -f "$*.smt2,%U,%x" -a -o $(STATFILES)/dkcheck \
 		timeout $(DKCHECKTIMEOUT) dkcheck $< || rm -f $< $*.proof $*.smt2
 
 #%dk : ne prend pas en compte logic.dk (voir 4))
 %.dk: %.proof verine
-	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/details_verine \
+	/usr/bin/time --quiet -f "$*.smt2,%U,%x" -a -o $(STATFILES)/verine \
 		timeout $(VERINETIMEOUT) ./verine $(VERINEFLAGS) $< > $@ || rm -f $@ $< $*.smt2
 
 %.proof: %.smt2
-	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/details_veriT \
+	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/veriT \
 		timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< \
 	&& if [[ `cat $@` == 'Formula is Satisfiable' ]]; then rm $@ $<; fi \
 	|| { rm -f $@ $<; }
@@ -99,17 +99,14 @@ stats:
 	make bench
 	rm -rf $(STATFILES)
 	mkdir $(STATFILES)
-	echo "File,User time,Exit status" > $(STATFILES)/details_veriT
-	echo "File,User time,Exit status" > $(STATFILES)/details_verine
-	echo "File,User time,Exit status" > $(STATFILES)/details_dkcheck
-	echo "Number of tested .smt2 files: "`find $(BENCHDIR) -name "*.smt2" | wc -w` \
-		>> $(STATFILES)/global
-	/usr/bin/time --quiet -f "Total veriT time: %U" -a -o $(STATFILES)/global make bench
-	echo "Number of produced .proof files: "`find $(BENCHDIR) -name "*.proof" | wc -w` \
-	 	>> $(STATFILES)/global
-	/usr/bin/time --quiet -f "Total verine time: %U" -a -o $(STATFILES)/global make bench
-	echo "Number of produced .dk files: "`find $(BENCHDIR) -name "*.dk" | wc -w` \
-		>> $(STATFILES)/global
-	/usr/bin/time --quiet -f "Total dkcheck time: %U" -a -o $(STATFILES)/global make bench
-	 echo "Number of checked .dk files: "`find $(BENCHDIR) -name "*.dk" | wc -w` \
-		>> $(STATFILES)/global
+	echo "smt2 file,veriT user time,veriT exit status" > $(STATFILES)/veriT
+	echo "smt2 file,verine user time,verine exit status" > $(STATFILES)/verine
+	echo "smt1 file,dkcheck user time,dkcheck exit status" > $(STATFILES)/dkcheck
+	echo "bench directory: "`basename $(SMTLIBDIR)` > $(STATFILES)/global
+	echo "veriT timeout: "$(VERITTIMEOUT) >> $(STATFILES)/global
+	echo "verine timeout: "$(VERINETIMEOUT) >> $(STATFILES)/global
+	echo "dkcheck timeout: "$(DKCHECKTIMEOUT) >> $(STATFILES)/global
+	make bench
+	make bench
+	make bench
+	./stats.sh $(STATFILES)
