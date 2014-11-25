@@ -111,4 +111,4 @@ stats:
 	make bench
 	make bench
 	make bench
-	$(STATDIR)/stats.sh $(STATFILES)
+	$(STATDIR)/stats.sh $(STATFILES) $(STATDIR)
