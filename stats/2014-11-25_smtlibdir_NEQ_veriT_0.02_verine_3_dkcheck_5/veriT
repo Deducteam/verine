@@ -1,0 +1,97 @@
+smt2 file,veriT user time,veriT exit status
+Command exited with non-zero status 124
+bench/NEQ/408156/NEQ048_size9.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408117/NEQ015_size3.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408154/NEQ048_size7.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408119/NEQ015_size5.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408115/NEQ006_size5.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408134/NEQ031_size7.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408145/NEQ041_size6.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408144/NEQ033_size6.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408139/NEQ032_size5.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408149/NEQ046_size3.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408132/NEQ027_size9.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408124/NEQ016_size8.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408120/NEQ015_size6.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408114/NEQ006_size4.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408116/NEQ006_size6.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408135/NEQ031_size8.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408112/NEQ004_size7.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408130/NEQ027_size11.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408138/NEQ032_size4.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408129/NEQ027_size10.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408141/NEQ033_size3.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408137/NEQ032_size3.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408123/NEQ016_size7.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408151/NEQ046_size5.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408153/NEQ048_size6.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408150/NEQ046_size4.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408152/NEQ046_size6.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408133/NEQ031_size10.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408155/NEQ048_size8.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408142/NEQ033_size4.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408110/NEQ004_size5.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408146/NEQ041_size7.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408147/NEQ041_size8.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408118/NEQ015_size4.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408109/NEQ004_size4.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408121/NEQ016_size5.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408143/NEQ033_size5.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408122/NEQ016_size6.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408140/NEQ032_size6.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408113/NEQ006_size3.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408125/NEQ023_size4.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408128/NEQ023_size7.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408111/NEQ004_size6.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408136/NEQ031_size9.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408148/NEQ041_size9.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408126/NEQ023_size5.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408131/NEQ027_size8.smt2,0.01,124
+Command exited with non-zero status 124
+bench/NEQ/408127/NEQ023_size6.smt2,0.01,124

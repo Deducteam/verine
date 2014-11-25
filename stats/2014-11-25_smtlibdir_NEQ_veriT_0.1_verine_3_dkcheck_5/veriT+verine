@@ -1,0 +1,2 @@
+smt2 file,veriT user time,veriT exit status,verine user time,verine exit status
+bench/NEQ/408117/NEQ015_size3.smt2,0.07,0,0.56,0
