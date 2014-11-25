@@ -57,23 +57,21 @@ all: verine logic.dko
 	@./verine $(VERINEFLAGS) $< | dkcheck -stdin || true
 
 %.dkt: %.dk
-	/usr/bin/time -f "$*.smt2,%U,%x" -a -o $(STATFILES)/dkcheck \
-		timeout $(DKCHECKTIMEOUT) dkcheck $< || rm -f $< $*.proof $*.smt2
+	/usr/bin/time --quiet -f "$*.smt2,%U,%x" -a -o $(STATFILES)/dkcheck \
+		timeout $(DKCHECKTIMEOUT) dkcheck $< \
+	|| rm -f $< $*.proof $*.smt2
 
 #%dk : ne prend pas en compte logic.dk (voir 4))
 %.dk: %.proof verine
-	/usr/bin/time -f "$*.smt2,%U,%x" -a -o $(STATFILES)/verine \
-		timeout $(VERINETIMEOUT) ./verine $(VERINEFLAGS) $< > $@ || rm -f $@ $< $*.smt2
+	/usr/bin/time --quiet -f "$*.smt2,%U,%x" -a -o $(STATFILES)/verine \
+		timeout $(VERINETIMEOUT) ./verine $(VERINEFLAGS) $< > $@ \
+	|| rm -f $@ $< $*.smt2
 
 %.proof: %.smt2
 	prove_unsat () { timeout $(VERITTIMEOUT) veriT --proof-version=1 --proof=$@ $< \
 		&& [[ `cat $@` != 'Formula is Satisfiable' ]]; }; \
 	export -f prove_unsat; \
-	/usr/bin/time -f "$<,%U,%x" -a -o $(STATFILES)/veriT \
-		bash -c prove_unsat \
-	|| { rm -f $@ $<; }
-
-#&& if [[ `cat $@` == 'Formula is Satisfiable' ]]; then rm -f $@ $<; fi; }; \
+	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/veriT bash -c prove_unsat || rm -f $@ $< 
 
 verine: *.ml *.mli *.mll *.mly
 	ocamlbuild verine.native

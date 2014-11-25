@@ -1,0 +1,14 @@
+bench directory: QF_UF
+veriT timeout: 0.01
+verine timeout: 120
+dkcheck timeout: 120
+number of tested .smt2 files: 6650
+number of proved .smt2 files: 13
+number of translation failures before timout: 0
+number of translated .proof files: 13
+number of checking failures before timout: 0
+number of checked .dk files: 13
+proportion of translation failures before timout: 0%
+proportion of translated .proof files: 100%
+propertion of checking failures before timout: 0%
+proportion of checked .dk files: 100%

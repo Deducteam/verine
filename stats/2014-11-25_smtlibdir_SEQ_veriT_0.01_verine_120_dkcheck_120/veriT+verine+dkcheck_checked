@@ -1,0 +1,2 @@
+smt2 file,veriT user time,veriT exit status,verine user time,verine exit status,dkcheck user time,dkcheck exit status
+bench/SEQ/414640/SEQ032_size2.smt2,0.00,0,0.04,0,0.10,0

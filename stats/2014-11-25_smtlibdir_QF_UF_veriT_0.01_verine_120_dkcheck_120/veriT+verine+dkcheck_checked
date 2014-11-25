@@ -1,0 +1,14 @@
+smt2 file,veriT user time,veriT exit status,verine user time,verine exit status,dkcheck user time,dkcheck exit status
+bench/QF_UF/eq_diamond/408054/eq_diamond5.smt2,0.00,0,0.00,0,0.01,0
+bench/QF_UF/eq_diamond/408009/eq_diamond1.smt2,0.00,0,0.00,0,0.00,0
+bench/QF_UF/eq_diamond/408087/eq_diamond8.smt2,0.01,0,0.07,0,0.26,0
+bench/QF_UF/eq_diamond/408043/eq_diamond4.smt2,0.00,0,0.00,0,0.01,0
+bench/QF_UF/eq_diamond/408065/eq_diamond6.smt2,0.00,0,0.00,0,0.05,0
+bench/QF_UF/eq_diamond/408021/eq_diamond2.smt2,0.00,0,0.00,0,0.00,0
+bench/QF_UF/eq_diamond/408032/eq_diamond3.smt2,0.00,0,0.00,0,0.00,0
+bench/QF_UF/eq_diamond/408076/eq_diamond7.smt2,0.01,0,0.02,0,0.11,0
+bench/QF_UF/TypeSafe/892767/z3.1184163.smt2,0.00,0,0.00,0,0.00,0
+bench/QF_UF/TypeSafe/892766/z3.1184147.smt2,0.00,0,0.00,0,0.00,0
+bench/QF_UF/TypeSafe/892765/z3.1184131.smt2,0.00,0,0.00,0,0.00,0
+bench/QF_UF/SEQ/414653/SEQ050_size2.smt2,0.01,0,0.06,0,0.21,0
+bench/QF_UF/SEQ/414640/SEQ032_size2.smt2,0.01,0,0.03,0,0.10,0
