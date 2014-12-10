@@ -1,0 +1,10 @@
+bench directory: loops6
+veriT timeout: 0.01
+verine timeout: 120
+dkcheck timeout: 120
+number of tested .smt2 files: 448
+number of proved .smt2 files: 0
+number of translation failures before timout: 0
+number of translated .proof files: 0
+number of checking failures before timout: 0
+number of checked .dk files: 0

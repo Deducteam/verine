@@ -1,0 +1,8 @@
+smt2 file,dkcheck user time,dkcheck exit status
+bench/loops6/408442/iso_brn006.smt2,0.58,0
+bench/loops6/408481/iso_brn045.smt2,2.57,0
+bench/loops6/408549/iso_icl007.smt2,0.95,0
+bench/loops6/408334/gensys_icl007.smt2,119.56,124
+bench/loops6/408441/iso_brn005.smt2,0.89,0
+bench/loops6/408331/gensys_icl004.smt2,119.69,124
+bench/loops6/408342/gensys_icl015.smt2,119.67,124

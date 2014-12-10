@@ -1,0 +1,4 @@
+bench directory: loops6
+veriT timeout: 0.1
+verine timeout: 3
+dkcheck timeout: 5

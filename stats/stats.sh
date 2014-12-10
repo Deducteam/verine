@@ -32,4 +32,4 @@ echo "proportion of translation failures before timout: "$((TRANSLATION_FAILURE 
 echo "proportion of translated .proof files: "$((TRANSLATED * 100 / PROVED))"%" >> $1/global
 echo "propertion of checking failures before timout: "$((CHECKING_FAILURE * 100 / TRANSLATED))"%" >> $1/global
 echo "proportion of checked .dk files: "$((CHECKED * 100 / TRANSLATED))"%" >> $1/global
-gnuplot -p -e "data='$1/veriT+verine+dkcheck_checked'" $2/plot.gp . > $1/speed_stats
+gnuplot -p -e "data='$1/veriT+verine+dkcheck_checked'" $2/plot.gp . > $1/speed_stats.png
