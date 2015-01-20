@@ -1,0 +1,4 @@
+bench directory: SEQ
+veriT timeout: 0.5
+verine timeout: 3
+dkcheck timeout: 5

@@ -30,7 +30,7 @@ VERINEFLAGS =
 TESTDIR = test
 TESTSMTS = $(wildcard $(TESTDIR)/*.smt2)
 TESTDKCS = $(TESTSMTS:.smt2=.dkc)
-SMTLIBDIR = smtlib2/QF_UF/SEQ
+SMTLIBDIR = smtlib2/QF_UF/NEQ
 BENCHDIR = bench
 BENCHSMTS = $(shell find $(BENCHDIR) -name "*.smt2")
 BENCHPRFS_NEEDED = $(BENCHSMTS:.smt2=.proof)
@@ -38,7 +38,7 @@ BENCHPRFS = $(shell find $(BENCHDIR) -name "*.proof")
 BENCHDKS_NEEDED = $(BENCHPRFS:.proof=.dk)
 BENCHDKS = $(shell find $(BENCHDIR) -name "*.dk")
 BENCHDKTS_NEEDED = $(BENCHDKS:.dk=.dkt)
-VERITTIMEOUT = 0.1
+VERITTIMEOUT = 0.5
 VERINETIMEOUT = 3
 DKCHECKTIMEOUT = 5
 STATDIR = stats
@@ -74,7 +74,7 @@ all: verine logic.dko
 	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/veriT bash -c prove_unsat || rm -f $@ $< 
 
 verine: *.ml *.mli *.mll *.mly
-	ocamlbuild verine.native
+	ocamlbuild -use-ocamlfind -package smt2d verine.native
 	mv verine.native verine
 
 clean:
