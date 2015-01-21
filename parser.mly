@@ -1,6 +1,5 @@
 %{
   module Concrete = Smt2d.Concrete
-  module Abstract = Smt2d.Abstract
 %}
 
 %token EOF
@@ -17,7 +16,7 @@
 %token CLAUSES CONCLUSION
        
 %start step
-%type <Trace.step> step
+%type <Proof.prestep> step
 			      
 %%
 
@@ -29,7 +28,7 @@ numeral_plus:
 symbol_plus:
   | SYMBOL                { [$1] }
   | SYMBOL symbol_plus    { $1 :: $2 }
-;  
+;
 
 keyword:
   | CLAUSES          { ":clauses" }
@@ -142,9 +141,10 @@ conclusion:
 
 step:
   | OPEN SYMBOL SYMBOL OPEN SYMBOL clauses conclusion CLOSE CLOSE
-	 { let absterms =
-	     List.map (Abstract.tr_term Abstract.empty_vars) $7 in
-	   Trace.Step ($3, $5, $6, absterms) }
+	 { { Proof.id = $3;
+	     Proof.rule = $5;
+	     Proof.clauses = $6;
+	     Proof.conclusion = $7; } }
   | EOF    { raise End_of_file }
 ;
 

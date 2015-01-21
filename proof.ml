@@ -1,29 +1,30 @@
-type term = 
-  | Var of string
-  | Fun of string * term list
+(* AST corresponding to veriT proof traces, using smtlib2 terms *)
 
-type prop =
-  | True
-  | False
-  | Not of prop
-  | Imply of prop * prop
-  | And of prop * prop
-  | Or of prop * prop
-  | Xor of prop * prop
-  | Eq of term * term
-  | Distinct of term * term
-  | Ite of prop * term * term
-  | Pred of string * term list
+type id = string
+type rule = string	      
 
-type rulename = string
+type prestep = {
+  id: id;
+  rule: rule;
+  clauses: id list;
+  conclusion: Smt2d.Concrete.term list;
+}
 
-type rule = 
-  | Input
-  | Eq_reflexive
-  | Eq_transitive
-  | Eq_congruent
-  | Resolution
-  | Unknown of string
+type step = {
+  id: id;
+  rule: rule;
+  clauses: id list;
+  conclusion: Smt2d.Expand.term list;
+}
 
-type step =
-  | Step of rulename * rule * rulename list * prop list
+let mk_step signature (prestep : prestep) = 
+  let newconclusion =
+    List.map 
+      (fun t -> Smt2d.Expand.expand signature (Smt2d.Abstract.tr_term Smt2d.Abstract.empty_vars t)) 
+      prestep.conclusion in
+  {
+    id = prestep.id;
+    rule = prestep.rule;
+    clauses = prestep.clauses;
+    conclusion = newconclusion;
+  }
