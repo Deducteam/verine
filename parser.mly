@@ -25,11 +25,6 @@ numeral_plus:
   | NUMERAL numeral_plus    { $1 :: $2 }
 ;
 
-symbol_star:
-  |                       { [] }
-  | SYMBOL symbol_star    { $1 :: $2 }
-;
-
 symbol_plus:
   | SYMBOL                { [$1] }
   | SYMBOL symbol_plus    { $1 :: $2 }
@@ -71,11 +66,6 @@ sort:
   | OPEN identifier sort_plus CLOSE    { Concrete.Sort ($2,$3) }
 ;
 
-sort_star:
-  |                   { [] }
-  | sort sort_star    { $1 :: $2 }
-;
-
 sort_plus:
   | sort              { [$1] }
   | sort sort_plus    { $1 :: $2 }
@@ -113,11 +103,6 @@ var_binding_plus:
 
 sorted_var:
   | OPEN SYMBOL sort CLOSE    { ($2,$3) }
-;
-
-sorted_var_star:
-  |                               { [] }
-  | sorted_var sorted_var_star    { $1 :: $2 }
 ;
 
 sorted_var_plus:
