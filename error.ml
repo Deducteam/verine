@@ -16,10 +16,6 @@ let print_location_error l c str =
 let print_line_error l str = 
   eprintf "Line %d: %s\n" l str; exit 1
 
-exception LexerError of string * int * int
-
-exception ParserError of string * int * int
-
 exception RuleError of int
 exception FoundRuleError
 

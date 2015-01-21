@@ -1,12 +1,15 @@
 open Printf
 
-let filename : string option ref = ref None
+exception Catched_lexer_error of string * int * int
+exception Catched_parse_error of string * int * int
 
-let umsg = "Usage: verine <file>"
+let umsg = "Usage: verine <file.smt2> <file.proof>"
+
+let files = ref []
 
 let argspec = ["-debug", Arg.Set Debug.debugmode, "debug mode"]
 
-let parse_and_run out lexbuf = 
+let process_proof signature assertions lexbuf = 
   try 
     let inputstep step = 
       match step with 
@@ -19,7 +22,7 @@ let parse_and_run out lexbuf =
       let line, newenv =
 	Translate.translate_step 
 	  dkinputvars dkinputconcvars step env in
-      Translate.print_step out line;
+      Translate.print_step stdout line;
       parse_and_run_step dkinputvars dkinputconcvars newenv    
     in
     let rec parse_and_run_input dkinputvars dkinputconcvars inputs env =
@@ -33,39 +36,50 @@ let parse_and_run out lexbuf =
 	  (newconcvar :: dkinputconcvars) 
 	  (step :: inputs) newenv
       else begin
-      	  Translate.print_prelude out env inputs dkinputconcvars;
+      	  Translate.print_prelude stdout env inputs dkinputconcvars;
 	  run_step step dkinputvars dkinputconcvars env end in
     parse_and_run_input [] [] [] Translate.PrfEnvMap.empty      
   with 
   | Error.EndOfFile -> ()
+  | Lexer.Lexer_error -> 
+     let (s, l, c) = Error.get_location lexbuf in
+     raise (Catched_lexer_error (s, l, c))
   | Parsing.Parse_error -> 
     let (s, l, c) = Error.get_location lexbuf in
-    raise (Error.ParserError (s, l, c))
+    raise (Catched_parse_error (s, l, c))
   | Error.FoundRuleError ->
      let l = Error.get_line lexbuf in
     raise (Error.RuleError l)
 
-let translate_file file = 
-  match !filename with
-  | Some f -> Arg.usage [] umsg; exit 2
-  | None ->
-    let name = 
-      Scope.convert 
-	(Filename.chop_extension (Filename.basename file)) in
-    filename := Some name;
-    let chan = open_in file in
-    let lexbuf = Lexing.from_channel chan in
-    let out = stdout in
-    Dedukti.print_line out (Dedukti.prelude name);
-    parse_and_run out lexbuf
-     
+
+let process_smt2 lexbuf =
+  let signature, assertions = Smt2d.Process_script.get_unique_context lexbuf in
+  let sort_context = Smt2d.Translate.tr_sort_context signature in
+  let fun_context = Smt2d.Translate.tr_fun_context signature in
+  let propositions = Smt2d.Translate.tr_assertions signature assertions in
+  List.iter (Smt2d.Dedukti.print_line stdout) sort_context;
+  List.iter (Smt2d.Dedukti.print_line stdout) fun_context;
+  List.iter (Smt2d.Dedukti.print_line stdout) propositions;
+  signature, assertions
+
 let () =
   try
-    Arg.parse argspec translate_file umsg;
+    Arg.parse argspec (fun f -> files := f :: !files) umsg;
+    match !files with
+    | [smt2_file; proof_file] -> 
+       let modname = 
+	 Smt2d.Translate.tr_string (Filename.chop_extension (Filename.basename smt2_file)) in
+       let prelude = Smt2d.Dedukti.prelude modname in
+       Smt2d.Dedukti.print_line stdout prelude;
+       let smt2_lexbuf = Lexing.from_channel (open_in smt2_file) in
+       let signature, assertions = process_smt2 smt2_lexbuf in
+       let proof_lexbuf = Lexing.from_channel (open_in proof_file) in
+       process_proof signature assertions proof_lexbuf
+    | _ -> Arg.usage argspec umsg; exit 1
   with
-  | Error.LexerError (s, l, c ) -> 
+  | Catched_lexer_error (s, l, c ) -> 
      Error.print_location_error l c (sprintf "Unexpected character '%s'"s)
-  | Error.ParserError (s, l, c ) -> 
+  | Catched_parse_error (s, l, c ) -> 
      Error.print_location_error l c (sprintf "Unexpected token '%s'"s)
   | Error.RuleError l -> 
      Error.print_line_error l ("Unexpected rule structure")

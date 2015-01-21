@@ -1,5 +1,6 @@
 %{
   module Concrete = Smt2d.Concrete
+  module Abstract = Smt2d.Abstract
 %}
 
 %token EOF
@@ -142,7 +143,7 @@ conclusion:
 step:
   | OPEN SYMBOL SYMBOL OPEN SYMBOL clauses conclusion CLOSE CLOSE
 	 { let absterms =
-	     List.map (Smt2d.Abstract.tr_term Smt2d.Abstract.empty_vars) $7 in
+	     List.map (Abstract.tr_term Abstract.empty_vars) $7 in
 	   Trace.Step ($3, $5, $6, absterms) }
   | EOF    { raise End_of_file }
 ;

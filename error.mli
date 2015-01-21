@@ -10,12 +10,6 @@ val print_location_error : int -> int -> string -> unit
 (* print error from line and string message *)
 val print_line_error : int -> string -> unit
 
-(* lexing error with indications of character/token, line and column *)
-exception LexerError of string * int * int
-
-(* parsing error with indications of character/token, line and column *)
-exception ParserError of string * int * int
-
 (* rule structure error with indication of line, raised catching FoundRuleError *)
 exception RuleError of int
 exception FoundRuleError

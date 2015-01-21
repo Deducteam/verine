@@ -1,7 +1,6 @@
 #+Title: Comments
 
 * A faire
- - ajouter un traducteur de smtlib2
  - commenter mlis
    trace.mli
    proof.mli
@@ -15,6 +14,7 @@
    Makefile
  - ajouter un warning pour les règles non reconnues
  - exceptions de scope / de traduction ?
+ - revoir les erreurs, signaler le fichier
 
 * Commmentaires
  - il existe un ordre strict sur les termes dans veriT 
@@ -36,3 +36,4 @@
  - NEQ OK
  - PEQ OK
  - TypeSafe OK
+   
