@@ -5,7 +5,7 @@
 %token EOF
 
 %token OPEN CLOSE
-%token <string> NUMERAL DECIMAL HEXADECIMAL BINARY STRING SYMBOL KEYWORD
+%token <string> NUMERAL DECIMAL HEXADECIMAL BINARY STRING SYMBOL OTHER_KEYWORD
 
 %token UNDERSCORE
 
@@ -13,16 +13,9 @@
 
 %token LET FORALL EXISTS ATTRIBUTE
 
-%token SET_LOGIC SET_OPTION SET_INFO DECLARE_SORT DEFINE_SORT
-       DECLARE_FUN DEFINE_FUN PUSH POP ASSERT CHECK_SAT
-       GET_ASSERTIONS GET_PROOF GET_UNSAT_CORE
-       GET_VALUE GET_ASSIGNMENT GET_OPTION GET_INFO EXIT
-
 %token CLAUSES CONCLUSION
        
-%start command term step
-%type <Smt2d.Concrete.command> command
-%type <Smt2d.Concrete.term> term
+%start step
 %type <Trace.step> step
 			      
 %%
@@ -37,6 +30,17 @@ symbol_star:
   | SYMBOL symbol_star    { $1 :: $2 }
 ;
 
+symbol_plus:
+  | SYMBOL                { [$1] }
+  | SYMBOL symbol_plus    { $1 :: $2 }
+;  
+
+keyword:
+  | CLAUSES          { ":clauses" }
+  | CONCLUSION       { ":conclusion" }
+  | OTHER_KEYWORD    { $1 }
+;
+
 spec_constant:
   | NUMERAL        { Concrete.Numeral $1 }
   | DECIMAL        { Concrete.Decimal $1 }
@@ -48,7 +52,7 @@ spec_constant:
 s_expr:
   | spec_constant             { Concrete.Spec_constant_expr $1 }
   | SYMBOL                    { Concrete.Symbol_expr $1 }
-  | KEYWORD                   { Concrete.Keyword_expr $1 }
+  | keyword                   { Concrete.Keyword_expr $1 }
   | OPEN s_expr_star CLOSE    { Concrete.List_expr $2 }
 ;
 
@@ -84,8 +88,8 @@ attribute_value:
 ;
 
 attribute:
-  | KEYWORD                    { ($1,None) }
-  | KEYWORD attribute_value    { ($1,Some $2) }
+  | keyword                    { ($1,None) }
+  | keyword attribute_value    { ($1,Some $2) }
 ;
 
 attribute_plus:
@@ -131,57 +135,18 @@ term:
   | OPEN ATTRIBUTE term attribute_plus CLOSE             { Concrete.Attributed_term ($3,$4) }
 ;
 
-term_plus:
-  | term              { [$1] }
-  | term term_plus    { $1 :: $2 }
-;
-
-command_option:
-  | attribute    { $1 }
-;
-
-info_flag:
-  | KEYWORD    { $1 }
-;
-
-command:
-  | OPEN SET_LOGIC SYMBOL CLOSE                                        { Concrete.Set_logic $3 }
-  | OPEN SET_OPTION command_option CLOSE                               { Concrete.Set_option $3 }
-  | OPEN SET_INFO attribute CLOSE                                      { Concrete.Set_info $3 }
-  | OPEN DECLARE_SORT SYMBOL NUMERAL CLOSE                             
-	 { Concrete.Declare_sort ($3,$4) }
-  | OPEN DEFINE_SORT SYMBOL OPEN symbol_star CLOSE sort CLOSE          
-	 { Concrete.Define_sort ($3,$5,$7) }
-  | OPEN DECLARE_FUN SYMBOL OPEN sort_star CLOSE sort CLOSE            
-	 { Concrete.Declare_fun ($3,$5,$7) }
-  | OPEN DEFINE_FUN SYMBOL OPEN sorted_var_star CLOSE sort term CLOSE  
-	 { Concrete.Define_fun ($3,$5,$7,$8) }
-  | OPEN PUSH NUMERAL CLOSE                                            { Concrete.Push $3 }
-  | OPEN POP NUMERAL CLOSE                                             { Concrete.Pop $3 }
-  | OPEN ASSERT term CLOSE                                             { Concrete.Assert $3 }
-  | OPEN CHECK_SAT CLOSE                                               { Concrete.Check_sat }
-  | OPEN GET_ASSERTIONS CLOSE                                          { Concrete.Get_assertions }
-  | OPEN GET_PROOF CLOSE                                               { Concrete.Get_proof }
-  | OPEN GET_UNSAT_CORE CLOSE                                          { Concrete.Get_unsat_core }
-  | OPEN GET_VALUE OPEN term_plus CLOSE CLOSE                          { Concrete.Get_value $4 }
-  | OPEN GET_ASSIGNMENT CLOSE                                          { Concrete.Get_assignment }
-  | OPEN GET_OPTION KEYWORD CLOSE                                      { Concrete.Get_option $3 }
-  | OPEN GET_INFO info_flag CLOSE                                      { Concrete.Get_info $3 }
-  | OPEN EXIT CLOSE                                                    { Concrete.Exit }
-  | EOF                                                                { raise End_of_file }
-;
-
-symbol_plus:
-  | SYMBOL                { [$1] }
-  | SYMBOL symbol_plus    { $1 :: $2 }
-;  
-
 term_star:
   |                   { [] }
   | term term_star    { $1 :: $2 }
 ;
 
+term_plus:
+  | term              { [$1] }
+  | term term_plus    { $1 :: $2 }
+;
+
 clauses:
+  |                                   { [] }
   | CLAUSES OPEN symbol_plus CLOSE    { $3 }
 ;    
 
@@ -190,17 +155,9 @@ conclusion:
 ;
 
 step:
-  | OPEN SYMBOL SYMBOL OPEN SYMBOL conclusion CLOSE CLOSE
-	 { let absterms =
-	     List.map
-	       (Smt2d.Abstract.tr_term
-		  Smt2d.Abstract.empty_vars) $6 in
-	   Trace.Step ($3, $5, [], absterms) }
   | OPEN SYMBOL SYMBOL OPEN SYMBOL clauses conclusion CLOSE CLOSE
 	 { let absterms =
-	     List.map
-	       (Smt2d.Abstract.tr_term
-		  Smt2d.Abstract.empty_vars) $7 in
+	     List.map (Smt2d.Abstract.tr_term Smt2d.Abstract.empty_vars) $7 in
 	   Trace.Step ($3, $5, $6, absterms) }
   | EOF    { raise End_of_file }
 ;

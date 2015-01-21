@@ -42,37 +42,8 @@ rule token = parse
   | "forall"            { FORALL }
   | "exists"            { EXISTS }
   | '!'                 { ATTRIBUTE }
-  | "par"
-        { raise Lexer_error }
-  | "NUMERAL"
-        { raise Lexer_error }
-  | "DECIMAL"
-        { raise Lexer_error }
-  | "STRING"
-        { raise Lexer_error }
-  | "set-logic"         { SET_LOGIC }
-  | "set-option"        { SET_OPTION }
-  | "set-info"          { SET_INFO }
-  | "declare-sort"      { DECLARE_SORT }
-  | "define-sort"       { DEFINE_SORT }
-  | "declare-fun"       { DECLARE_FUN }
-  | "define-fun"        { DEFINE_FUN }
-  | "push"              { PUSH }
-  | "pop"               { POP }
-  | "assert"            { ASSERT }
-  | "check-sat"         { CHECK_SAT }
-  | "get-assertions"    { GET_ASSERTIONS }
-  | "get-proof"         { GET_PROOF }
-  | "get-unsat-core"    { GET_UNSAT_CORE }
-  | "get-value"         { GET_VALUE }
-  | "get-assignment"    { GET_ASSIGNMENT }
-  | "get-option"        { GET_OPTION }
-  | "get-info"          { GET_INFO }
-  | "exit"              { EXIT }
   | '('                 { OPEN }
   | ')'                 { CLOSE }
-  | ":clauses"          { CLAUSES }
-  | ":conclusion"       { CONCLUSION }
   | ('0' | ['1'-'9'] ['0'-'9']*) as s
         { NUMERAL s }
   | ('0' | ['1'-'9'] ['0'-'9']*) '.' ['0'-'9']+ as s
@@ -87,7 +58,9 @@ rule token = parse
         { SYMBOL s }
   | '|' (([' '-'~' '\t' '\r' '\n'] # ['\\' '|'])* as s) '|'
         { iter_new_line s lexbuf; SYMBOL s }
+  | ":clauses"          { CLAUSES }
+  | ":conclusion"       { CONCLUSION }
   | ':' ['0'-'9' 'a'-'z' 'A'-'Z' '+' '-' '/' '*' '=' '%' '?' '!' '.' '$' '_' '~' '&' '^' '<' '>' '@']+ as s
-        { KEYWORD s }
+        { OTHER_KEYWORD s }
   | _
         { raise Lexer_error }
