@@ -1,20 +1,19 @@
 (* AST corresponding to veriT proof traces, using smtlib2 terms *)
 
-type id = string
-type rule = string	      
+type id  = Trace.id
 
-type prestep = {
-  id: id;
-  rule: rule;
-  clauses: id list;
-  conclusion: Smt2d.Concrete.term list;
-}
+type rule = Trace.rule
+
+(* terms with no bindings or attributes *)
+type term = private Smt2d.Abstract.term
 
 type step = {
   id: id;
   rule: rule;
   clauses: id list;
-  conclusion: Smt2d.Expand.term list;
+  conclusion: term list;
 }
 
-val mk_step:  Smt2d.Signature.signature -> prestep -> step
+(* from trace.ml to proof.ml: scopes, expands,
+ and eliminates constructors {var, let, forall, exists, attributed} *)
+val process_step: Smt2d.Signature.signature -> Trace.step -> step

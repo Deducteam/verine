@@ -1,5 +1,11 @@
 module Dk = Dedukti
 module Pr = Proof
+
+module FreeVarSet = Set.Make (
+  struct
+    type t = Dk.term * Dk.term
+    let compare = Pervasives.compare
+  end)
   
 module PrfEnvMap = Map.Make (
   struct 
@@ -39,7 +45,7 @@ let rec translate_prop prop =
   | Pr.Eq (x, y) -> Dk.l_eq (translate_term x) (translate_term y)
   | Pr.Distinct (x, y) -> Dk.l_not (Dk.l_eq (translate_term x) (translate_term y))
   | Pr.Ite (p, x, y) -> assert false
-  | Pr.Pred (s, ts) -> Dk.app
+  | Pr.Pred (s, ts) -> Dk.app 
     (Dk.var (s^(string_of_int (List.length ts)))) (List.map translate_term ts)
 
 (* *** TRANSLATION OF EQUALITIES *** *)
@@ -306,3 +312,72 @@ let rec translate_step dkinputvars dkinputconcvars step env =
 	PrfEnvMap.add name
 	  (Dk.app (Dk.var name) (List.map Dk.var dkinputvars), concs) env in
       line, newenv
+
+let print_step out line =
+  Dk.print_line out line
+
+(* *** FIND FREE VARIABLES *** *)
+
+let rec get_vars_term varenv term =
+  match term with
+  | Pr.Var (s) -> 
+    FreeVarSet.add (Dk.var s, Dk.l_term) varenv
+  | Pr.Fun (s, ts) -> 
+    let newenv, typ = 
+      List.fold_left 
+	(fun (env, typ) t -> 
+	  get_vars_term env t, Dk.arrow Dk.l_term typ)
+	(varenv, Dk.l_term) ts in
+    FreeVarSet.add (Dk.var s, typ) newenv
+
+let rec get_vars_prop varenv prop =
+  match prop with
+  | Pr.True -> varenv
+  | Pr.False -> varenv
+  | Pr.Not (p) -> get_vars_prop varenv p
+  | Pr.Imply (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Pr.And (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Pr.Or (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Pr.Xor (p, q) -> get_vars_prop (get_vars_prop varenv p) q
+  | Pr.Eq (t1, t2) -> get_vars_term (get_vars_term varenv t1) t2
+  | Pr.Distinct (t1, t2) -> get_vars_term (get_vars_term varenv t1) t2
+  | Pr.Ite (p, t1, t2) -> assert false
+  | Pr.Pred (s, ts) -> 
+    let newenv, typ =
+      List.fold_left
+	(fun (env, typ) t ->
+	  get_vars_term env t, Dk.arrow Dk.l_term typ)
+	(varenv, Dk.l_prop) ts in
+    FreeVarSet.add 
+      (Dk.var (s^(string_of_int (List.length ts))), typ) newenv
+
+let get_vars varenv step = 
+  match step with
+  | Pr.Step (_, _, _, concs) -> 
+    List.fold_left get_vars_prop varenv concs
+
+(* *** TRANSLATE INPUT *** *)
+
+let translate_input input env =
+  match input with 
+  | Pr.Step (name, Pr.Input, [], concs) -> 
+    name, Dk.var ("P"^name), 
+    PrfEnvMap.add name (Dk.var name, concs) env
+  | _ -> raise Error.FoundRuleError
+
+let print_prelude out env inputs dkinputconcvars = 
+  let freevars = 
+    PrfEnvMap.fold 
+      (fun _ (_, concs) freevars -> 
+       List.fold_left get_vars_prop freevars concs) 
+      env FreeVarSet.empty in
+  FreeVarSet.iter
+    (fun (var, typ) -> Dk.print_line out (Dk.declaration var typ)) freevars;
+  List.iter2
+    (fun input dkinputconcvar ->
+     match input with 
+     | Pr.Step (_, _, _, concs) -> 
+	let dkconcs = List.map translate_prop concs in
+	let dkinput = mk_clause dkconcs in
+     Dk.print_line out (Dk.definition dkinputconcvar Dk.l_prop dkinput))
+    inputs dkinputconcvars

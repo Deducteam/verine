@@ -16,7 +16,7 @@
 %token CLAUSES CONCLUSION
        
 %start step
-%type <Proof.prestep> step
+%type <Trace.step> step
 			      
 %%
 
@@ -141,10 +141,10 @@ conclusion:
 
 step:
   | OPEN SYMBOL SYMBOL OPEN SYMBOL clauses conclusion CLOSE CLOSE
-	 { { Proof.id = $3;
-	     Proof.rule = $5;
-	     Proof.clauses = $6;
-	     Proof.conclusion = $7; } }
+	 { { Trace.id = $3;
+	     Trace.rule = Trace.mk_rule $5;
+	     Trace.clauses = $6;
+	     Trace.conclusion = $7; } }
   | EOF    { raise End_of_file }
 ;
 
