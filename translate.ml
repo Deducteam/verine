@@ -1,4 +1,4 @@
-module Dk = Dedukti
+module Dk = Smt2d.Dedukti
 module Pr = Proof
   
 module PrfEnvMap = Map.Make (
@@ -275,34 +275,28 @@ let translate_rule rule rulehyps concs =
   | Pr.Unknown (name), _, _ -> raise Error.Axiom
   | _, _, _ -> raise Error.FoundRuleError
 
-let rec translate_step dkinputvars dkinputconcvars step env =
-  match step with
-  | Pr.Step (name, rule, hyps, concs) -> 
-    let rulehyps = List.map 
-      (fun hyp -> 
-       PrfEnvMap.find hyp env) hyps in
-    let dkconcs = List.map translate_prop concs in
-    try
-      let prf = translate_rule rule rulehyps concs in
-      let proved = 
-	List.fold_left 
-	  (fun q p -> Dk.l_imply p q) (mk_clause dkconcs)
-	  (List.rev dkinputconcvars) in
-      let line =
-	Dk.definition (Dk.var name) (Dk.l_prf proved) 
-	  (Dk.lams dkinputvars (List.map Dk.l_prf dkinputconcvars) prf) in
-      let newenv =
-	PrfEnvMap.add name
-	  (Dk.app (Dk.var name) (List.map Dk.var dkinputvars), concs) env in 
-      line, newenv
+let rec translate_step env input step =
+  let name = Smt2d.Translate.tr_string step.Pr.id in
+  let premices = 
+    List.map (fun hyp -> PrfEnvMap.find hyp env) step.Pr.clauses in
+  let preconclusion = mk_clause (List.map translate_prop step.Pr.conclusion) in
+  let conclusion = 
+    List.fold_left 
+      (fun p q -> Dk.l_imply q p) 
+      preconclusion 
+      (List.rev_map (mk_clause) assertion_bindings) in
+  let line = 
+    try 
+      let proof = translate_rule step.Pr.rule premices step.Pr.conclusion in
+      Dk.definition 
+	(Dk.var name) (Dk.l_proof conclusion)
+	(Dk.lams (input.proof_vars) (List.map Dk.l_proof input.prop_vars) proof) 
     with
-    | Error.Axiom -> 
-      let proved = 
-	List.fold_left 
-	  (fun q p -> Dk.l_imply p q) (mk_clause dkconcs)
-	  (List.rev dkinputconcvars) in
-      let line = Dk.declaration (Dk.var name) (Dk.l_prf proved) in
-      let newenv = 
-	PrfEnvMap.add name
-	  (Dk.app (Dk.var name) (List.map Dk.var dkinputvars), concs) env in
-      line, newenv
+    | Error.Axiom ->
+      Dk.declaration 
+	(Dk.var name) (Dk.l_proof conclusion) in
+  let new_env =
+    PrfEnvMap.add 
+      step.Pr.id 
+      (Dk.app (Dk.var name) (List.map Dk.var input.proof_vars), step.Pr.conclusion) env in
+  line, new_env

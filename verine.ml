@@ -14,40 +14,10 @@ let process_proof signature assertion_bindings lexbuf =
     let rec process_step env =
       let trace_step = Parser.step Lexer.token lexbuf in
       let step = Proof.process_step signature trace_step in
-      let line, newenv = Translate.translate_step signature assertion_bindings in
+      let line, newenv = Translate.translate_step signature assertion_bindings step in
       Smt2d.Dedukti.print_line stdout line;
       process_step newenv in
     process_step ()
-
-    (* let inputstep step = *)
-    (*   match step with *)
-    (*   | Proof.Step (_, Proof.Input, _, _) -> true *)
-    (*   | _ -> false in *)
-    (* let rec parse_and_run_step dkinputvars dkinputconcvars env = *)
-    (*   let step = Scope.scope (Parser.step Lexer.token lexbuf) in *)
-    (*   run_step step dkinputvars dkinputconcvars env *)
-    (* and run_step step dkinputvars dkinputconcvars env = *)
-    (*   let line, newenv = *)
-    (* 	Translate.translate_step  *)
-    (* 	  dkinputvars dkinputconcvars step env in *)
-    (*   Translate.print_step stdout line; *)
-    (*   parse_and_run_step dkinputvars dkinputconcvars newenv     *)
-    (* in *)
-    (* let rec parse_and_run_input dkinputvars dkinputconcvars inputs env = *)
-    (*   let step = Scope.scope (Parser.step Lexer.token lexbuf) in *)
-    (*   if inputstep step *)
-    (*   then *)
-    (* 	let newvar, newconcvar, newenv =  *)
-    (* 	  Translate.translate_input step env in *)
-    (* 	parse_and_run_input  *)
-    (* 	  (newvar :: dkinputvars) *)
-    (* 	  (newconcvar :: dkinputconcvars)  *)
-    (* 	  (step :: inputs) newenv *)
-    (*   else begin *)
-    (*   	  Translate.print_prelude stdout env inputs dkinputconcvars; *)
-    (* 	  run_step step dkinputvars dkinputconcvars env end in *)
-    (* parse_and_run_input [] [] [] Translate.PrfEnvMap.empty *)
-
   with
   | Error.EndOfFile -> ()
   | Lexer.Lexer_error -> 
