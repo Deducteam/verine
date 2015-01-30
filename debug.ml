@@ -1,7 +1,7 @@
 let debugmode = ref false
 
 let printterm t = 
-  Dedukti.print_term stderr t
+  Smt2d.Dedukti.print_term stderr t
 	 
 let printlist ts = 
   let rec xeprintdks ts =

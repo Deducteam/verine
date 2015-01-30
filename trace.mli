@@ -16,5 +16,5 @@ type step = {
   id: id;
   rule: rule;
   clauses: id list;
-  conclusion: Smt2d.Concrete.term list;
+  conclusion: Smt2d.Abstract.term list;
 }

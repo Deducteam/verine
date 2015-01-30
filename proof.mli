@@ -14,6 +14,7 @@ type step = {
   conclusion: term list;
 }
 
-(* from trace.ml to proof.ml: scopes, expands,
+(* from trace.ml to proof.ml: expands,
  and eliminates constructors {var, let, forall, exists, attributed} *)
-val process_step: Smt2d.Signature.signature -> Trace.step -> step
+val simplify: Smt2d.Abstract.term -> term
+val process_step: Trace.step -> step

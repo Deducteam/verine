@@ -1,24 +1,15 @@
-(* environment: association table mapping a rulename to a couple
-   (dedukti proof term, clause as a list of dedukti propositions) *)
+type smt2_env =
+    { signature: Smt2d.Signature.signature;
+      input_terms: Proof.term list;
+      input_term_vars: Smt2d.Dedukti.term list;
+      input_proof_idents: Smt2d.Dedukti.ident list; }
+
 module PrfEnvMap :
 sig
   type 'a t
   val empty: 'a t
 end
 
-(* from:
-   - the input clause as one dedukti variable (dkinput)
-   - a proof of the input clause (dkinputvar)
-   - a step
-   - an environment containing proofs of the previous steps
-     including (dkinputvar)
-   computes:
-   - a dedukti proof (prf) of the step clause in this environment
-   returns: 
-   - a dedukti definition of a variable (dkclausevar)
-     as the proof (lambda dkinputvar. prf),
-   - the environment enriched with (dkclausevar dkinputvar)*)
-val translate_step : 
-  Dedukti.var list -> Dedukti.term list -> Proof.step ->
-  (Dedukti.term * Proof.prop list) PrfEnvMap.t ->
-  Dedukti.line * ((Dedukti.term * Proof.prop list) PrfEnvMap.t) 
+type proof_env = (Smt2d.Dedukti.term * Proof.term list) PrfEnvMap.t
+
+val translate_step : smt2_env -> proof_env -> Proof.step -> Smt2d.Dedukti.line * proof_env 

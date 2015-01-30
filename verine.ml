@@ -9,15 +9,23 @@ let files = ref []
 
 let argspec = ["-debug", Arg.Set Debug.debugmode, "debug mode"]
 
-let process_proof signature assertion_bindings lexbuf =
+let process_proof signature assertions assertion_vars lexbuf =
   try
-    let rec process_step env =
+    let smt2_env =
+      { Translate.signature = signature;
+	Translate.input_terms = assertions;
+	Translate.input_term_vars = assertion_vars;
+	Translate.input_proof_idents = 
+	  List.mapi 
+	    (fun i _ -> "HI_"^(string_of_int (i+1))) assertion_vars;
+      } in
+    let rec process_step proof_env =
       let trace_step = Parser.step Lexer.token lexbuf in
-      let step = Proof.process_step signature trace_step in
-      let line, newenv = Translate.translate_step signature assertion_bindings step in
+      let step = Proof.process_step trace_step in
+      let line, new_proof_env = Translate.translate_step smt2_env proof_env step in
       Smt2d.Dedukti.print_line stdout line;
-      process_step newenv in
-    process_step ()
+      process_step new_proof_env in
+    process_step Translate.PrfEnvMap.empty
   with
   | Error.EndOfFile -> ()
   | Lexer.Lexer_error -> 
@@ -34,15 +42,16 @@ let process_smt2 lexbuf =
   let signature, assertions = Smt2d.Process_script.get_unique_context lexbuf in
   let sort_context = Smt2d.Translate.tr_sort_context signature in
   let fun_context = Smt2d.Translate.tr_fun_context signature in
-  let assertion_bindings = 
+  let assertion_vars = 
     List.mapi 
-      (fun i term ->
-       term, Smt2d.Dedukti.var (("I_"^(string_of_int (i+1))))) assertions in
-  let inputs = Smt2d.Translate.tr_assertion_bindings signature assertion_bindings in
+      (fun i _ -> Smt2d.Dedukti.var ("I_"^(string_of_int (i+1)))) assertions in
+  let assertion_context = 
+    Smt2d.Translate.tr_assertion_bindings 
+      signature (List.combine assertions assertion_vars) in
   List.iter (Smt2d.Dedukti.print_line stdout) sort_context;
   List.iter (Smt2d.Dedukti.print_line stdout) fun_context;
-  List.iter (Smt2d.Dedukti.print_line stdout) inputs;
-  signature, assertion_bindings
+  List.iter (Smt2d.Dedukti.print_line stdout) assertion_context;
+  signature, assertions, assertion_vars 
 
 let () =
   try
@@ -54,9 +63,11 @@ let () =
        let prelude = Smt2d.Dedukti.prelude modname in
        Smt2d.Dedukti.print_line stdout prelude;
        let smt2_lexbuf = Lexing.from_channel (open_in smt2_file) in
-       let signature, assertion_bindings = process_smt2 smt2_lexbuf in
+       let signature, assertions, assertion_vars = process_smt2 smt2_lexbuf in
        let proof_lexbuf = Lexing.from_channel (open_in proof_file) in
-       process_proof signature assertion_bindings proof_lexbuf
+       process_proof 
+	 signature (List.map Proof.simplify assertions) 
+	 assertion_vars proof_lexbuf
     | _ -> Arg.usage argspec umsg; exit 1
   with
   | Catched_lexer_error (s, l, c ) -> 

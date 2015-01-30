@@ -33,28 +33,39 @@ let add_bindings bindings env =
 
 (* from trace.ml to proof.ml: scopes, expands,
  and eliminates constructors {var, let, forall, exists, attributed} *)
-let rec elim_aux env term =
+let rec simplify_aux_core env core =
+  match core with
+  | Abs.True -> Abs.t_true
+  | Abs.False -> Abs.t_false
+  | Abs.Not t -> Abs.t_not (simplify_aux env t)
+  | Abs.Imply (t1, t2) -> Abs.t_imply (simplify_aux env t1) (simplify_aux env t2)
+  | Abs.And (t1, t2) -> Abs.t_and (simplify_aux env t1) (simplify_aux env t2)
+  | Abs.Or (t1, t2) -> Abs.t_or (simplify_aux env t1) (simplify_aux env t2)
+  | Abs.Xor (t1, t2) -> Abs.t_xor (simplify_aux env t1) (simplify_aux env t2)
+  | Abs.Equal (t1, t2) -> Abs.t_equal (simplify_aux env t1) (simplify_aux env t2)
+  | Abs.Distinct (t1, t2) -> Abs.t_distinct (simplify_aux env t1) (simplify_aux env t2)
+  | Abs.Ite (t1, t2, t3) -> 
+     Abs.t_ite (simplify_aux env t1) (simplify_aux env t2) (simplify_aux env t3)
+
+and simplify_aux env term =
   match term with
   | Abs.Var var -> VarBindings.find var env     
-  | Abs.App (fun_sym, opt, terms) -> Abs.t_app fun_sym opt (List.map (elim_aux env) terms)
+  | Abs.App (fun_sym, opt, terms) -> Abs.t_app fun_sym opt (List.map (simplify_aux env) terms)
+  | Abs.Core core ->
+     simplify_aux_core env core
   | Abs.Let (bindings, term) -> 
-     elim_aux (add_bindings bindings env) term
+     simplify_aux (add_bindings bindings env) term
   | Abs.Forall (sorted_vars, term) -> raise Smt2d.Error.Not_implemented
   | Abs.Exists (sorted_vars, term) -> raise Smt2d.Error.Not_implemented
-  | Abs.Attributed (term, attributes) -> elim_aux env term
+  | Abs.Attributed (term, attributes) -> simplify_aux env term
 
-let elim_bindings_attributes (term: Smt2d.Expand.term) =
-  elim_aux empty_env (term :> Abs.term)
+let simplify term =
+  simplify_aux empty_env term
 
-let process_step signature trace_step =
+let process_step trace_step =
   {
     id = trace_step.Trace.id;
     rule = trace_step.Trace.rule;
     clauses = trace_step.Trace.clauses;
-    conclusion = 
-      let abstract_conclusion = 
-	List.map (Smt2d.Abstract.tr_term Smt2d.Abstract.empty_vars) trace_step.Trace.conclusion in
-      let expanded_conclusion = 
-	List.map (Smt2d.Expand.expand signature) abstract_conclusion in
-      List.map elim_bindings_attributes expanded_conclusion;
+    conclusion = List.map simplify trace_step.Trace.conclusion
   }

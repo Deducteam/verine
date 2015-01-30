@@ -112,7 +112,7 @@ sorted_var_plus:
 
 term:
   | spec_constant                                        { Concrete.Spec_constant_term $1 }
-  | qual_identifier                                      { Concrete.Qual_identifier_term $1 }
+  | qual_identifier                                      { Concrete.App_term ($1,[]) }
   | OPEN qual_identifier term_plus CLOSE                 { Concrete.App_term ($2,$3) }
   | OPEN LET OPEN var_binding_plus CLOSE term CLOSE      { Concrete.Let_term ($4,$6) }
   | OPEN FORALL OPEN sorted_var_plus CLOSE term CLOSE    { Concrete.Forall_term ($4,$6) }
@@ -144,7 +144,8 @@ step:
 	 { { Trace.id = $3;
 	     Trace.rule = Trace.mk_rule $5;
 	     Trace.clauses = $6;
-	     Trace.conclusion = $7; } }
+	     Trace.conclusion = 
+	       List.map (Smt2d.Abstract.tr_term Smt2d.Abstract.empty_vars) $7; } }
   | EOF    { raise End_of_file }
 ;
 
