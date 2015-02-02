@@ -15,6 +15,8 @@
  - ajouter un warning pour les règles non reconnues
  - exceptions de scope / de traduction ?
  - revoir les erreurs, signaler le fichier
+ - problème du cas ite pour eq_congruent ?
+ - traduire intput
 
 * Commmentaires
  - il existe un ordre strict sur les termes dans veriT 

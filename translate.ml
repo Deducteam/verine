@@ -101,23 +101,22 @@ let rec find_transitives prfs s xys x y n =
     find_transitives (prf :: ps) s (xy :: vs) x y n3
   | _, _ -> assert false
     
-(* from hs, xs and ys such that for each i, hi is a proof of xi = yi, 
+(* from hs, xs and ys such that for each i, hi is a proof of xi = yi, xi : s 
    returns a proof of f(xs) = f(ys) *)
-let find_congruent hs f xs ys n =
-  (* let tx = Pr.Fun (f, xs) in *)
-  (* let dktx = translate_term tx in *)
-  (* let dkz, n1 = mk_newvar "T" n in *)
-  (* let refl, _ = find_reflexive tx n1 in               (\* tx = tx *\) *)
-  (* let onestep (prf,dkys,dkxxs) h dky =             (\* tx = f(ys,x,xs) => tx = f(ys,y,xs) *\) *)
-  (*   match dkxxs with *)
-  (*   | dkx :: dkxs -> *)
-  (*     let dktz = Dk.app (Dk.var f) (dkys@[Dk.var dkz]@dkxs) in *)
-  (*     Dk.app3 h (Dk.lam dkz Dk.l_term (Dk.l_eq dktx dktz)) prf, (dkys@[dky]), dkxs *)
-  (*   | _ -> assert false in *)
-  (* let prf, _, _ = *)
-  (*   List.fold_left2 onestep (refl, [], List.map translate_term xs) hs (List.map translate_term ys) in *)
-  (* prf *)
-  assert false
+let find_congruent hs s f xs ys n =
+  let tx = Dk.app f xs in
+  let dkz, n1 = mk_newvar "T" n in
+  let refl, _ = 
+    find_reflexive s tx n1 in               (* tx = tx *)
+  let onestep (prf,dkys,dkxxs) h dky =             (* tx = f(ys,x,xs) => tx = f(ys,y,xs) *)
+    match dkxxs with
+    | dkx :: dkxs ->
+      let dktz = Dk.app f (dkys@[Dk.var dkz]@dkxs) in
+      Dk.app3 h (Dk.lam dkz (Dk.l_term s) (Dk.l_equal s tx dktz)) prf, (dkys@[dky]), dkxs
+    | _ -> assert false in
+  let prf, _, _ =
+    List.fold_left2 onestep (refl, [], xs) hs ys in
+  prf
 
 (* *** TRANSLATION OF RESOLUTIONS *** *)
 
@@ -126,20 +125,19 @@ let find_congruent hs f xs ys n =
    - p is (not q): returns true, q, p1h, p1t, p2h, p2t
    - q is (not p): returns false, p, p1h, p1t, p2h, p2t *)
 let find_split p1s p2s =
-  (* let rec xfind_split p1h p1t p2h p2t = *)
-  (*   match p1t, p2t with *)
-  (*   | Pr.Not p :: p1t', p2 :: p2t' when (p = p2) -> *)
-  (*     true, p, p1h, p1t', p2h, p2t' *)
-  (*   | p1 :: p1t', Pr.Not p :: p2t' when (p = p1) -> *)
-  (*     false, p, p1h, p1t', p2h, p2t' *)
-  (*   | p1 :: p1', p2 :: p2t' -> *)
-  (*     xfind_split p1h p1t (p2 :: p2h) p2t' *)
-  (*   | p1 :: p1t', [] -> *)
-  (*     xfind_split (p1 :: p1h) p1t' [] p2s *)
-  (*   | _, _ -> assert false in *)
-  (* let b, p, p1h, p1t, p2h, p2t = xfind_split [] p1s [] p2s in *)
-  (* b, p, List.rev p1h, p1t, List.rev p2h, p2t *)
-  assert false
+  let rec xfind_split p1h p1t p2h p2t =
+    match p1t, p2t with
+    | Abs.Core (Abs.Not p) :: p1t', p2 :: p2t' when (p = p2) ->
+      true, p, p1h, p1t', p2h, p2t'
+    | p1 :: p1t', Abs.Core (Abs.Not p) :: p2t' when (p = p1) ->
+      false, p, p1h, p1t', p2h, p2t'
+    | p1 :: p1', p2 :: p2t' ->
+      xfind_split p1h p1t (p2 :: p2h) p2t'
+    | p1 :: p1t', [] ->
+      xfind_split (p1 :: p1h) p1t' [] p2s
+    | _, _ -> assert false in
+  let b, p, p1h, p1t, p2h, p2t = xfind_split [] p1s [] p2s in
+  b, p, List.rev p1h, p1t, List.rev p2h, p2t
 
 let rec split l1 l2 l3 l4 l =
   match l1, l2, l3, l4, l with
@@ -157,40 +155,39 @@ let rec split l1 l2 l3 l4 l =
 (* from proofs of the hypotheses as functions 
    from negations of propositions to false, 
    returns a function proving the conclusion *)
-let rec find_resolution hyps n =
-  (* match hyps with *)
-  (* | (fun1, p1s) :: (fun2, p2s) :: hyps -> *)
-  (*   let b, p, p1h, p1t, xp2h, xp2t = find_split p1s p2s in *)
-  (*   let cleanlist l = List.filter (fun x -> not (List.mem x (p1h@p1t))) l in *)
-  (*   let p2h, p2t = cleanlist xp2h, cleanlist xp2t in *)
-  (*   let h, newn = mk_newvar "H" n in *)
-  (*   let newfun = *)
-  (*     fun vs -> *)
-  (* 	let v1h, v1t, v2h, v2t = split p1h p1t p2h p2t vs in *)
-  (* 	let env = List.combine (p1h@p1t) (v1h@v1t) in *)
-  (* 	let cplh = List.combine p2h v2h in *)
-  (* 	let cplt = List.combine p2t v2t in *)
-  (* 	let xv2h = List.map *)
-  (* 	  (fun p -> *)
-  (* 	    let l1 = List.filter (fun (q, x) -> p = q) cplh in *)
-  (* 	    let l2 = List.filter (fun (q, x) -> p = q) env in *)
-  (* 	    match l1@l2 with (q, x) :: _ -> x | _ -> assert false ) xp2h in *)
-  (* 	let xv2t = List.map *)
-  (* 	  (fun p -> *)
-  (* 	    let l1 = List.filter (fun (q, x) -> p = q) cplt in *)
-  (* 	    let l2 = List.filter (fun (q, x) -> p = q) env in *)
-  (* 	    match l1@l2 with (q, x) :: _ -> x | _ -> assert false ) xp2t in *)
-  (* 	match b with *)
-  (* 	| true -> *)
-  (* 	  fun1 (v1h @ [Dk.lam h (Dk.l_prf (Dk.l_not (translate_prop p))) ( *)
-  (* 	    fun2 (xv2h @ [Dk.var h] @ xv2t))] @ v1t) *)
-  (* 	| false -> *)
-  (* 	  fun2 (xv2h @ [Dk.lam h (Dk.l_prf (Dk.l_not (translate_prop p))) ( *)
-  (* 	    fun1 (v1h @ [Dk.var h] @ v1t))] @ xv2t) in *)
-  (*   find_resolution ((newfun, p1h@p1t@p2h@p2t) :: hyps) newn *)
-  (* | [func, _] -> func *)
-  (* | _ -> assert false *)
-  assert false
+let rec find_resolution signature hyps n =
+  match hyps with
+  | (fun1, p1s) :: (fun2, p2s) :: hyps ->
+    let b, p, p1h, p1t, xp2h, xp2t = find_split p1s p2s in
+    let cleanlist l = List.filter (fun x -> not (List.mem x (p1h@p1t))) l in
+    let p2h, p2t = cleanlist xp2h, cleanlist xp2t in
+    let h, newn = mk_newvar "H" n in
+    let newfun =
+      fun vs ->
+  	let v1h, v1t, v2h, v2t = split p1h p1t p2h p2t vs in
+  	let env = List.combine (p1h@p1t) (v1h@v1t) in
+  	let cplh = List.combine p2h v2h in
+  	let cplt = List.combine p2t v2t in
+  	let xv2h = List.map
+  	  (fun p ->
+  	    let l1 = List.filter (fun (q, x) -> p = q) cplh in
+  	    let l2 = List.filter (fun (q, x) -> p = q) env in
+  	    match l1@l2 with (q, x) :: _ -> x | _ -> assert false ) xp2h in
+  	let xv2t = List.map
+  	  (fun p ->
+  	    let l1 = List.filter (fun (q, x) -> p = q) cplt in
+  	    let l2 = List.filter (fun (q, x) -> p = q) env in
+  	    match l1@l2 with (q, x) :: _ -> x | _ -> assert false ) xp2t in
+  	match b with
+  	| true ->
+  	  fun1 (v1h @ [Dk.lam h (Dk.l_proof (Dk.l_not (Smt2d.Translate.tr_term signature p))) (
+  	    fun2 (xv2h @ [Dk.var h] @ xv2t))] @ v1t)
+  	| false ->
+  	  fun2 (xv2h @ [Dk.lam h (Dk.l_proof (Dk.l_not (Smt2d.Translate.tr_term signature p))) (
+  	    fun1 (v1h @ [Dk.var h] @ v1t))] @ xv2t) in
+    find_resolution signature ((newfun, p1h@p1t@p2h@p2t) :: hyps) newn
+  | [func, _] -> func
+  | _ -> assert false
 
 (* *** TRANSLATE STEPS *** *)
 	 
@@ -239,51 +236,61 @@ let translate_rule smt2_env rule rulehyps concs =
   	 List.fold_left2
   	   (fun prf h (cprf, p) -> Dk.app2 cprf (Dk.lam h (Dk.l_proof p) prf))
   	   (Dk.app2 cprf prf) hs cps)
-  (* | Pr.Eq_congruent, [], chyps -> *)
-  (*    let (cprf, eq), hyps = *)
-  (*      match List.rev chyps with *)
-  (*      | h :: hs -> h, List.rev hs *)
-  (*      | _ -> assert false in *)
-  (*    let hs, n1 = mk_newvars "H" hyps n in       (\* x'j = y'j where forall i exists j, *)
-  (*                                      (xi = x'j and yi = y'i) or (xi = y'j and yi = x'i)*\) *)
-  (*    let f, xs, ys = *)
-  (*      match eq with *)
-  (*      | Pr.Eq (Pr.Fun (fx, xs), Pr.Fun (fy, ys)) -> *)
-  (* 	  fx, xs, ys *)
-  (*      | _ -> assert false in *)
-  (*    let eqprfs, n2 =                                                (\* xi = yi *\) *)
-  (*      List.fold_left2 *)
-  (* 	 (fun (eqprfs, n) x y -> *)
-  (* 	  let rec findeq hhyps = *)
-  (* 	    match hhyps with *)
-  (* 	    | [] -> assert false *)
-  (* 	    | (h, (_, Pr.Not (Pr.Eq (a, b)))) :: hhyps -> *)
-  (* 	       if (x = a) && (y = b) *)
-  (* 	       then eqprfs@[h], n *)
-  (* 	       else if (x = b) && (y = a) *)
-  (* 	       then *)
-  (* 		 let eqprf, newn = find_symmetric h a b n in *)
-  (* 		 eqprfs@[eqprf], newn *)
-  (* 	       else findeq hhyps *)
-  (* 	    | _ -> assert false in *)
-  (* 	  findeq (List.combine (List.map Dk.var hs) hyps)) ([], n1) xs ys in *)
-  (*    let prf = *)
-  (*      find_congruent eqprfs f xs ys n2 in *)
-  (*                     (\* f(xs) = f(ys) *\) *)
-  (*    let applylam prf h (cprf, neq) = *)
-  (*      match neq with *)
-  (*      | Pr.Not eq -> Dk.app2 cprf (Dk.lam h (Dk.l_prf (translate_prop eq)) prf) *)
-  (*      | _ -> assert false in *)
-  (*    useprf (List.fold_left2 applylam (Dk.app2 cprf prf) hs hyps) *)
-  (* | Pr.Resolution, rh1 :: rh2 :: rhs, _ -> *)
-  (*    let hyps = *)
-  (*      List.map *)
-  (* 	 (fun (prf, ps) -> (fun hs -> Dk.app prf hs), ps) *)
-  (* 		  rulehyps in *)
-  (*    useprf ((find_resolution hyps n) concvars) *)
-  (* | Trace.Unknown_rule (name), _, _ -> raise Error.Axiom *)
-  (* | _, _, _ -> raise Error.FoundRuleError *)
-  | _ -> raise Error.Axiom
+  | Trace.Eq_congruent, [], chyps ->
+     let (cprf, eq), hyps =
+       match List.rev chyps with
+       | h :: hs -> h, List.rev hs
+       | _ -> assert false in
+     let hs, n1 = mk_newvars "H" hyps n in       (* x'j = y'j where forall i exists j,
+                                       (xi = x'j and yi = y'i) or (xi = y'j and yi = x'i)*)
+     let f, s, xs, ys =
+       match eq with
+       | Abs.Core (Abs.Equal (Abs.App (fx, _, xs) as t, Abs.App (fy, _, ys))) ->
+  	  fx, (translate_sort (Smt2d.Get_sort.get_sort smt2_env.signature t)),
+	  xs, ys
+       | _ -> assert false in
+     let eqprfs, n2 =                                                (* xi = yi *)
+       List.fold_left2
+  	 (fun (eqprfs, n) x y ->
+  	  let rec findeq hhyps =
+  	    match hhyps with
+  	    | [] -> assert false
+  	    | (h, (_, Abs.Core (Abs.Not (Abs.Core (Abs.Equal (a, b)))))) :: hhyps ->
+  	       if (x = a) && (y = b)
+  	       then eqprfs@[h], n
+  	       else if (x = b) && (y = a)
+  	       then
+  		 let eqprf, newn = 
+		   find_symmetric 
+		     h (translate_sort (Smt2d.Get_sort.get_sort smt2_env.signature a))
+		     (Smt2d.Translate.tr_term smt2_env.signature a) 
+		     (Smt2d.Translate.tr_term smt2_env.signature b) n in
+  		 eqprfs@[eqprf], newn
+  	       else findeq hhyps
+  	    | _ -> assert false in
+  	  findeq (List.combine (List.map Dk.var hs) hyps)) ([], n1) xs ys in
+     let prf =
+       find_congruent 
+	 eqprfs s (Smt2d.Translate.tr_fun_symbol f) 
+	 (List.map (Smt2d.Translate.tr_term smt2_env.signature) xs) 
+	 (List.map (Smt2d.Translate.tr_term smt2_env.signature) ys) n2 in (* f(xs) = f(ys) *)
+     let applylam prf h (cprf, neq) =
+       match neq with
+       | Abs.Core (Abs.Not eq) -> 
+	  Dk.app2 
+	    cprf 
+	    (Dk.lam h (Dk.l_proof (Smt2d.Translate.tr_term smt2_env.signature eq)) prf)
+       | _ -> assert false in
+     useprf (List.fold_left2 applylam (Dk.app2 cprf prf) hs hyps)
+  | Trace.Resolution, rh1 :: rh2 :: rhs, _ ->
+     let hyps =
+       List.map
+  	 (fun (prf, ps) -> (fun hs -> Dk.app prf hs), 
+			   List.map (fun (t: Pr.term) -> (t :> Abs.term) ) ps)
+  		  rulehyps in
+     useprf ((find_resolution smt2_env.signature hyps n) concvars)
+  | Trace.Unknown_rule (name), _, _ -> raise Error.Axiom
+  | _, _, _ -> raise Error.FoundRuleError
 		     
 (* preuve de I1 => .. => In => mk_clause conclusion *)
 let rec translate_step smt2_env proof_env step =
