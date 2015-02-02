@@ -1,0 +1,4 @@
+bench directory: PEQ
+veriT timeout: 5
+verine timeout: 30
+dkcheck timeout: 50

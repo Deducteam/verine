@@ -27,13 +27,13 @@ module VarBindings =
 
 let empty_env = VarBindings.empty
 
-let add_bindings bindings env =
+(* from trace.ml to proof.ml: scopes, expands, 
+and eliminates constructors {var, let, forall, exists, attributed} *)
+let rec add_bindings bindings env =
   List.fold_left 
-    (fun env (var, term) -> VarBindings.add var term env) env bindings
+    (fun env (var, term) -> VarBindings.add var (simplify_aux env term) env) env bindings
 
-(* from trace.ml to proof.ml: scopes, expands,
- and eliminates constructors {var, let, forall, exists, attributed} *)
-let rec simplify_aux_core env core =
+and simplify_aux_core env core =
   match core with
   | Abs.True -> Abs.t_true
   | Abs.False -> Abs.t_false
@@ -49,11 +49,11 @@ let rec simplify_aux_core env core =
 
 and simplify_aux env term =
   match term with
-  | Abs.Var var -> VarBindings.find var env     
+  | Abs.Var var -> VarBindings.find var env
   | Abs.App (fun_sym, opt, terms) -> Abs.t_app fun_sym opt (List.map (simplify_aux env) terms)
   | Abs.Core core ->
      simplify_aux_core env core
-  | Abs.Let (bindings, term) -> 
+  | Abs.Let (bindings, term) ->
      simplify_aux (add_bindings bindings env) term
   | Abs.Forall (sorted_vars, term) -> raise Smt2d.Error.Not_implemented
   | Abs.Exists (sorted_vars, term) -> raise Smt2d.Error.Not_implemented

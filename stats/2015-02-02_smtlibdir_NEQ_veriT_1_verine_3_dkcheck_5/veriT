@@ -1,0 +1,11 @@
+smt2 file,veriT user time,veriT exit status
+bench/NEQ/408151/NEQ046_size5.smt2,0.69,0
+bench/NEQ/408109/NEQ004_size4.smt2,0.15,0
+bench/NEQ/408128/NEQ023_size7.smt2,0.99,124
+bench/NEQ/408115/NEQ006_size5.smt2,0.99,124
+bench/NEQ/408112/NEQ004_size7.smt2,0.98,124
+bench/NEQ/408120/NEQ015_size6.smt2,0.97,124
+bench/NEQ/408122/NEQ016_size6.smt2,0.98,124
+bench/NEQ/408156/NEQ048_size9.smt2,0.99,124
+Command terminated by signal 2
+bench/NEQ/408121/NEQ016_size5.smt2,0.88,0

@@ -16,5 +16,3 @@ exception FoundRuleError
 
 (* unknown rule needing an axiom declarationr *)
 exception Axiom
-(* exception raised at the end of the veriT proof file *)
-exception EndOfFile

@@ -19,5 +19,4 @@ let print_line_error l str =
 exception RuleError of int
 exception FoundRuleError
 
-exception EndOfFile
 exception Axiom

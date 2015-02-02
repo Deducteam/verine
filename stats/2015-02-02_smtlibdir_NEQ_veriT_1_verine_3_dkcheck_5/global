@@ -1,0 +1,4 @@
+bench directory: NEQ
+veriT timeout: 1
+verine timeout: 3
+dkcheck timeout: 5

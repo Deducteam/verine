@@ -1,0 +1,37 @@
+smt2 file,veriT user time,veriT exit status
+bench/PEQ/408199/PEQ019_size6.smt2,0.29,124
+bench/PEQ/408169/PEQ010_size5.smt2,0.16,0
+bench/PEQ/408162/PEQ003_size7.smt2,0.29,124
+bench/PEQ/408164/PEQ003_size9.smt2,0.29,124
+bench/PEQ/408198/PEQ019_size5.smt2,0.27,124
+bench/PEQ/408192/PEQ016_size7.smt2,0.28,124
+bench/PEQ/408191/PEQ016_size6.smt2,0.30,124
+bench/PEQ/408194/PEQ018_size5.smt2,0.28,124
+bench/PEQ/408177/PEQ012_size3.smt2,0.16,0
+bench/PEQ/408201/PEQ020_size5.smt2,0.29,124
+bench/PEQ/408185/PEQ014_size10.smt2,0.29,124
+bench/PEQ/408163/PEQ003_size8.smt2,0.29,124
+bench/PEQ/408190/PEQ016_size5.smt2,0.27,124
+bench/PEQ/408181/PEQ013_size5.smt2,0.28,124
+bench/PEQ/408158/PEQ002_size6.smt2,0.29,124
+bench/PEQ/408172/PEQ010_size8.smt2,0.29,124
+bench/PEQ/408161/PEQ003_size10.smt2,0.29,124
+bench/PEQ/408187/PEQ014_size8.smt2,0.29,124
+bench/PEQ/408188/PEQ014_size9.smt2,0.28,124
+bench/PEQ/408202/PEQ020_size6.smt2,0.30,124
+bench/PEQ/408180/PEQ012_size6.smt2,0.28,124
+bench/PEQ/408166/PEQ004_size7.smt2,0.29,124
+bench/PEQ/408165/PEQ004_size6.smt2,0.29,124
+bench/PEQ/408159/PEQ002_size7.smt2,0.29,124
+bench/PEQ/408203/PEQ020_size7.smt2,0.29,124
+bench/PEQ/408184/PEQ013_size8.smt2,0.28,124
+bench/PEQ/408178/PEQ012_size4.smt2,0.29,124
+bench/PEQ/408176/PEQ011_size8.smt2,0.29,124
+bench/PEQ/408174/PEQ011_size6.smt2,0.28,124
+bench/PEQ/408157/PEQ002_size5.smt2,0.29,124
+bench/PEQ/408195/PEQ018_size6.smt2,0.29,124
+bench/PEQ/408186/PEQ014_size11.smt2,0.28,124
+bench/PEQ/408173/PEQ011_size5.smt2,0.28,124
+bench/PEQ/408170/PEQ010_size6.smt2,0.29,124
+Command terminated by signal 2
+bench/PEQ/408197/PEQ019_size4.smt2,0.29,0

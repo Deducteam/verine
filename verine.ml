@@ -16,7 +16,7 @@ let process_proof signature assertions assertion_vars lexbuf =
 	Translate.input_terms = assertions;
 	Translate.input_term_vars = assertion_vars;
 	Translate.input_proof_idents = 
-	  List.mapi 
+	  List.mapi
 	    (fun i _ -> "HI_"^(string_of_int (i+1))) assertion_vars;
       } in
     let rec process_step proof_env =
@@ -27,7 +27,7 @@ let process_proof signature assertions assertion_vars lexbuf =
       process_step new_proof_env in
     process_step Translate.PrfEnvMap.empty
   with
-  | Error.EndOfFile -> ()
+  | End_of_file -> ()
   | Lexer.Lexer_error -> 
      let (s, l, c) = Error.get_location lexbuf in
      raise (Catched_lexer_error (s, l, c))
@@ -57,7 +57,7 @@ let () =
   try
     Arg.parse argspec (fun f -> files := f :: !files) umsg;
     match !files with
-    | [smt2_file; proof_file] -> 
+    | [proof_file; smt2_file] ->
        let modname = 
 	 Smt2d.Translate.tr_string (Filename.chop_extension (Filename.basename smt2_file)) in
        let prelude = Smt2d.Dedukti.prelude modname in

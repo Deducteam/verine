@@ -1,0 +1,5 @@
+smt2 file,veriT user time,veriT exit status
+bench/PEQ/408169/PEQ010_size5.smt2,0.11,0
+bench/PEQ/408177/PEQ012_size3.smt2,0.19,0
+bench/PEQ/408166/PEQ004_size7.smt2,0.55,0
+bench/PEQ/408197/PEQ019_size4.smt2,0.32,0

@@ -30,7 +30,7 @@ VERINEFLAGS =
 TESTDIR = test
 TESTSMTS = $(wildcard $(TESTDIR)/*.smt2)
 TESTDKCS = $(TESTSMTS:.smt2=.dkc)
-SMTLIBDIR = smtlib2/QF_UF/NEQ
+SMTLIBDIR = smtlib2/QF_UF/SEQ
 BENCHDIR = bench
 BENCHSMTS = $(shell find $(BENCHDIR) -name "*.smt2")
 BENCHPRFS_NEEDED = $(BENCHSMTS:.smt2=.proof)
@@ -54,7 +54,7 @@ all: verine logic.dko
 	dkcheck -e $<
 
 %.dkc: %.proof verine
-	@./verine $(VERINEFLAGS) $< | dkcheck -stdin || true
+	@./verine $(VERINEFLAGS) $*.smt2 $< | dkcheck -stdin || true
 
 %.dkt: %.dk
 	/usr/bin/time --quiet -f "$*.smt2,%U,%x" -a -o $(STATFILES)/dkcheck \
@@ -64,7 +64,7 @@ all: verine logic.dko
 #%dk : ne prend pas en compte logic.dk (voir 4))
 %.dk: %.proof verine
 	/usr/bin/time --quiet -f "$*.smt2,%U,%x" -a -o $(STATFILES)/verine \
-		timeout $(VERINETIMEOUT) ./verine $(VERINEFLAGS) $< > $@ \
+		timeout $(VERINETIMEOUT) ./verine $(VERINEFLAGS) $*.smt2 $< > $@ \
 	|| rm -f $@ $< $*.smt2
 
 %.proof: %.smt2

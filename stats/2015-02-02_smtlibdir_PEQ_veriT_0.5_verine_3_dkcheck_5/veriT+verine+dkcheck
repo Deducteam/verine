@@ -1,0 +1,2 @@
+smt2 file,veriT user time,veriT exit status,verine user time,verine exit status,dkcheck user time,dkcheck exit status
+bench/PEQ/408169/PEQ010_size5.smt2,0.11,0,0.85,0,0.05,1

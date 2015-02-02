@@ -1,0 +1,4 @@
+smt2 file,veriT user time,veriT exit status,verine user time,verine exit status
+bench/TypeSafe/892765/z3.1184131.smt2,0.00,0,0.00,2
+bench/TypeSafe/892767/z3.1184163.smt2,0.00,0,0.00,2
+bench/TypeSafe/892766/z3.1184147.smt2,0.00,0,0.00,2
