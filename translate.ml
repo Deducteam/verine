@@ -42,7 +42,7 @@ let translate_sort = Smt2d.Translate.tr_sort
 let find_reflexive s x n =
   let p, n1 = mk_newvar "P" n in
   let h, newn = mk_newvar "H" n1 in
-  Dk.lam p (Dk.arrow (Dk.l_term s) Dk.l_bool)
+  Dk.lam p (Dk.arrow (Dk.l_term s) (Dk.l_term Dk.l_bool))
     (Dk.lam h (Dk.l_proof (Dk.app2 (Dk.var p) x)) (Dk.var h)), newn
 
 (* from h a proof of x = y, and x : s, returns a proof of y = x *)
@@ -74,7 +74,7 @@ let rec find_transitive prf1 prf2 s x1 y1 x2 y2 x3 y3 n =
       let sym, n2 = find_symmetric prf1 s x1 y1 n1 in
       find_transitive sym prf2 s y1 x1 x2 y2 x3 y3 n2
     | false ->                   (* case _ = _, z = y, x = z: use a proof of y = z *)
-      let sym, n2 = find_symmetric s prf2 x2 y2 n1 in
+      let sym, n2 = find_symmetric prf2 s x2 y2 n1 in
       find_transitive prf1 sym s x1 y1 y2 x2 x3 y3 n2
 
 let rec find_transitives prfs s xys x y n =
@@ -194,37 +194,51 @@ let rec find_resolution hyps n =
 
 (* *** TRANSLATE STEPS *** *)
 	 
-let translate_rule signature rule rulehyps concs = 
+let translate_rule smt2_env rule rulehyps concs = 
   let vconcvars, n = mk_newvars "H" concs 1 in
   let concvars = List.map Dk.var vconcvars in
   let useprf prf =
-    Dk.lams vconcvars
-            (List.map (fun p -> Dk.l_proof (Dk.l_not (translate_term signature p))) concs) prf in
-  match rule, rulehyps, (List.combine concvars concs) with
-  (* | Pr.Input, _, _ -> assert false *)
-  (* | Pr.Eq_reflexive, [], [cprf, Pr.Eq (x, _)] -> *)
-  (*    let refl, _ = find_reflexive x n in *)
-  (*    useprf (Dk.app2 cprf refl) *)
-  (* | Pr.Eq_transitive, [], chyps -> *)
-  (*    let firstlasts l = match List.rev l with x :: xs -> List.rev xs, x | _ -> assert false in *)
-  (*    let hyps, hyp = firstlasts chyps in *)
-  (*    let pxys = *)
-  (*      List.map *)
-  (* 	 (fun (v, t) -> *)
-  (* 	  match t with *)
-  (* 	  | Pr.Not ( Pr.Eq (x, y) as p) -> *)
-  (* 	     (v, translate_prop p), (x, y) *)
-  (* 	  | _ -> assert false) hyps in *)
-  (*    let cprf, x, y = match hyp with *)
-  (* 	 cprf, Pr.Eq (x,  y) -> cprf, x, y *)
-  (*      | _ -> assert false in *)
-  (*    let cps, xys = List.split pxys in *)
-  (*    let hs, n1 = mk_newvars "H" cps n in *)
-  (*    let prf, _ = find_transitives (List.map Dk.var hs) xys x y n1 in *)
-  (*    useprf ( *)
-  (* 	 List.fold_left2 *)
-  (* 	   (fun prf h (cprf, p) -> Dk.app2 cprf (Dk.lam h (Dk.l_prf p) prf)) *)
-  (* 	   (Dk.app2 cprf prf) hs cps) *)
+    Dk.lams 
+      vconcvars
+      (List.map (fun p -> Dk.l_proof (Dk.l_not (translate_term smt2_env.signature p))) concs) prf in
+  let absconcs = List.map (fun (t:Proof.term) -> (t :> Abs.term)) concs in
+  match rule, rulehyps, (List.combine concvars absconcs) with
+  | Trace.Input, [], [cprf, term] ->
+     raise Error.Axiom
+     (* useprf *)
+     (*   (Dk.app2 cprf (List.assoc term (List.combine smt2_env.input_terms smt2_env.input_term_vars))) *)
+  | Trace.Eq_reflexive, [], [cprf, Abs.Core (Abs.Equal (x, _))] ->
+     let refl, _ = 
+       find_reflexive 
+	 (translate_sort (Smt2d.Get_sort.get_sort smt2_env.signature x))
+	 (Smt2d.Translate.tr_term smt2_env.signature x) n in
+     useprf (Dk.app2 cprf refl)
+  | Trace.Eq_transitive, [], chyps ->
+     let firstlasts l = match List.rev l with x :: xs -> List.rev xs, x | _ -> assert false in
+     let hyps, hyp = firstlasts chyps in
+     let dkpxys =
+       List.map
+  	 (fun (v, t) ->
+  	  match t with
+  	  | (Abs.Core (Abs.Not ( Abs.Core (Abs.Equal (x, y)) as p))) ->
+  	     (v, Smt2d.Translate.tr_term smt2_env.signature p), 
+	     (Smt2d.Translate.tr_term smt2_env.signature x, Smt2d.Translate.tr_term smt2_env.signature y)
+  	  | _ -> assert false) hyps in
+     let cprf, x, y = match hyp with
+  	 cprf, Abs.Core (Abs.Equal (x,  y)) -> 
+	 cprf, x, y
+       | _ -> assert false in
+     let cps, dkxys = List.split dkpxys in
+     let hs, n1 = mk_newvars "H" cps n in
+     let prf, _ = 
+       find_transitives 
+	 (List.map Dk.var hs) 
+	 (translate_sort (Smt2d.Get_sort.get_sort smt2_env.signature x))
+	 dkxys (Smt2d.Translate.tr_term smt2_env.signature x) (Smt2d.Translate.tr_term smt2_env.signature y) n1 in
+     useprf (
+  	 List.fold_left2
+  	   (fun prf h (cprf, p) -> Dk.app2 cprf (Dk.lam h (Dk.l_proof p) prf))
+  	   (Dk.app2 cprf prf) hs cps)
   (* | Pr.Eq_congruent, [], chyps -> *)
   (*    let (cprf, eq), hyps = *)
   (*      match List.rev chyps with *)
@@ -271,6 +285,7 @@ let translate_rule signature rule rulehyps concs =
   (* | _, _, _ -> raise Error.FoundRuleError *)
   | _ -> raise Error.Axiom
 		     
+(* preuve de I1 => .. => In => mk_clause conclusion *)
 let rec translate_step smt2_env proof_env step =
   let name = Smt2d.Translate.tr_string step.Pr.id in
   let premices =
@@ -280,11 +295,10 @@ let rec translate_step smt2_env proof_env step =
   let conclusion = 
     List.fold_left 
       (fun p q -> Dk.l_imply q p)
-      preconclusion 
-      (List.rev_map (fun t -> mk_clause [t]) smt2_env.input_term_vars) in
+      preconclusion (List.rev smt2_env.input_term_vars) in
   let line = 
-    try 
-      let proof = translate_rule smt2_env.signature step.Pr.rule premices step.Pr.conclusion in
+    try
+      let proof = translate_rule smt2_env step.Pr.rule premices step.Pr.conclusion in
       Dk.definition
 	(Dk.var name) (Dk.l_proof conclusion)
 	(Dk.lams (smt2_env.input_proof_idents) (List.map Dk.l_proof smt2_env.input_term_vars) proof)
