@@ -2,6 +2,8 @@
 
 type id  = Trace.id
 
+exception Proof_error
+
 type rule = Trace.rule
 
 (* terms with no bindings or attributes *)

@@ -2,6 +2,8 @@
 
 module Abs = Smt2d.Abstract
 
+exception Proof_error
+
 type id  = Trace.id
 
 type rule = Trace.rule
@@ -17,7 +19,6 @@ type step = {
 }
 
 (* Variable environment *)
-
 module VarBindings =
   Map.Make
     (struct
@@ -27,8 +28,7 @@ module VarBindings =
 
 let empty_env = VarBindings.empty
 
-(* from trace.ml to proof.ml: scopes, expands, 
-and eliminates constructors {var, let, forall, exists, attributed} *)
+(* from trace.ml to proof.ml: eliminates constructors {var, let, forall, exists, attributed} *)
 let rec add_bindings bindings env =
   List.fold_left 
     (fun env (var, term) -> VarBindings.add var (simplify_aux env term) env) env bindings
