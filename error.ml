@@ -15,8 +15,3 @@ let print_location_error l c str =
 
 let print_line_error l str = 
   eprintf "Line %d: %s\n" l str; exit 1
-
-exception RuleError of int
-exception FoundRuleError
-
-exception Axiom

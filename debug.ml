@@ -4,7 +4,7 @@ let printterm t =
   Smt2d.Dedukti.print_term stderr t
 	 
 let printlist ts = 
-  let rec xeprintdks ts =
+  let xeprintdks ts =
     match ts with
     | [] -> ()
     | t :: ts -> 

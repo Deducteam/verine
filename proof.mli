@@ -1,22 +1,26 @@
 (* AST corresponding to veriT proof traces, using smtlib2 terms *)
 
-type id  = Trace.id
-
 exception Proof_error
 
-type rule = Trace.rule
+type view =
+  | App of Smt2d.Abstract.fun_symbol * Smt2d.Abstract.term list
+  | True
+  | False
+  | Not of Smt2d.Abstract.term
+  | Imply of Smt2d.Abstract.term * Smt2d.Abstract.term
+  | And of Smt2d.Abstract.term * Smt2d.Abstract.term
+  | Or of Smt2d.Abstract.term * Smt2d.Abstract.term
+  | Xor of Smt2d.Abstract.term * Smt2d.Abstract.term
+  | Equal of Smt2d.Abstract.term * Smt2d.Abstract.term
+  | Distinct of Smt2d.Abstract.term * Smt2d.Abstract.term
+  | Ite of Smt2d.Abstract.term * Smt2d.Abstract.term * Smt2d.Abstract.term
 
-(* terms with no bindings or attributes *)
-type term = private Smt2d.Abstract.term
+val mk_view: Smt2d.Abstract.term -> view
 
-type step = {
-  id: id;
-  rule: rule;
-  clauses: id list;
-  conclusion: term list;
-}
+val equal: Smt2d.Abstract.term -> Smt2d.Abstract.term -> bool
 
-(* from trace.ml to proof.ml: expands,
- and eliminates constructors {var, let, forall, exists, attributed} *)
-val simplify: Smt2d.Abstract.term -> term
-val process_step: Trace.step -> step
+val match_app: Smt2d.Abstract.term -> Smt2d.Abstract.fun_symbol * Smt2d.Abstract.term list
+
+val match_not: Smt2d.Abstract.term -> Smt2d.Abstract.term
+
+val match_equal: Smt2d.Abstract.term -> Smt2d.Abstract.term * Smt2d.Abstract.term

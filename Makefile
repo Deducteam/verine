@@ -38,7 +38,7 @@ BENCHPRFS = $(shell find $(BENCHDIR) -name "*.proof")
 BENCHDKS_NEEDED = $(BENCHPRFS:.proof=.dk)
 BENCHDKS = $(shell find $(BENCHDIR) -name "*.dk")
 BENCHDKTS_NEEDED = $(BENCHDKS:.dk=.dkt)
-VERITTIMEOUT = 0.5
+VERITTIMEOUT = 0.3
 VERINETIMEOUT = 3
 DKCHECKTIMEOUT = 5
 STATDIR = stats
@@ -74,7 +74,7 @@ all: verine logic.dko
 	/usr/bin/time --quiet -f "$<,%U,%x" -a -o $(STATFILES)/veriT bash -c prove_unsat || rm -f $@ $< 
 
 verine: *.ml *.mli *.mll *.mly
-	ocamlbuild -use-ocamlfind -package smt2d verine.native
+	ocamlbuild -cflags -w,+a -use-ocamlfind -package smt2d verine.native
 	mv verine.native verine
 
 clean:

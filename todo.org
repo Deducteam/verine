@@ -1,22 +1,10 @@
 #+Title: Comments
 
 * A faire
- - commenter mlis
-   trace.mli
-   proof.mli
-   scope.mli
-   translate.mli
- - revoir 
-   proof.ml
-   scope.ml
-   translate.ml
-   verine.ml
-   Makefile
  - ajouter un warning pour les règles non reconnues
- - exceptions de scope / de traduction ?
- - revoir les erreurs, signaler le fichier
  - problème du cas ite pour eq_congruent ?
  - traduire intput
+ - réaliser des fcts de trad propres à proof.term pour accélérer la trad ?
 
 * Commmentaires
  - il existe un ordre strict sur les termes dans veriT 
@@ -28,14 +16,6 @@
  - on suppose dans une résolution c1 c2 ... cn que pour tout i, 
    il n'existe qu'une seule proposition p telle que 
    p est dans ci et non p est dans c(i+1) ou inversement
-
-* Pour plus tard
- - attention aux Dk_app enchainés lors du pattern matching sur les dkterms
-* Resultats
-** VeriT timeout = 1s
- - eq_diamond OK
- - SEQ OK
- - NEQ OK
- - PEQ OK
- - TypeSafe OK
-   
+ - la fonction equal n'est pas efficace si les lets apparaissent à 
+  plusieurs niveaux (elle devrait utiliser un environnement dans ce cas)
+ - définitions non acceptées (fonction equal non adaptée pour cela)

@@ -2,6 +2,7 @@ open Printf
 
 exception Catched_lexer_error of string * int * int
 exception Catched_parse_error of string * int * int
+exception Catched_translate_error of int
 
 let umsg = "Usage: verine <file.smt2> <file.proof>"
 
@@ -20,8 +21,8 @@ let process_proof signature assertions assertion_vars lexbuf =
 	    (fun i _ -> "HI_"^(string_of_int (i+1))) assertion_vars;
       } in
     let rec process_step proof_env =
-      let trace_step = Parser.step Lexer.token lexbuf in
-      let step = Proof.process_step trace_step in
+      let step = Parser.step Lexer.token lexbuf in
+      (* let step = Proof.process_step trace_step in *)
       let line, new_proof_env = Translate.translate_step smt2_env proof_env step in
       Smt2d.Dedukti.print_line stdout line;
       process_step new_proof_env in
@@ -34,12 +35,12 @@ let process_proof signature assertions assertion_vars lexbuf =
   | Parsing.Parse_error -> 
     let (s, l, c) = Error.get_location lexbuf in
     raise (Catched_parse_error (s, l, c))
-  | Error.FoundRuleError ->
+  | Translate.Translate_error ->
      let l = Error.get_line lexbuf in
-    raise (Error.RuleError l)
+    raise (Catched_translate_error l)
 
 let process_smt2 lexbuf =
-  let signature, assertions = Smt2d.Process_script.get_unique_context lexbuf in
+  let signature, assertions = Smt2d.Process_script.get_context lexbuf in
   let sort_context = Smt2d.Translate.tr_sort_context signature in
   let fun_context = Smt2d.Translate.tr_fun_context signature in
   let assertion_vars = 
@@ -66,7 +67,8 @@ let () =
        let signature, assertions, assertion_vars = process_smt2 smt2_lexbuf in
        let proof_lexbuf = Lexing.from_channel (open_in proof_file) in
        process_proof 
-	 signature (List.map Proof.simplify assertions) 
+	 (* signature (List.map Proof.mk_term assertions) *)
+	 signature assertions
 	 assertion_vars proof_lexbuf
     | _ -> Arg.usage argspec umsg; exit 1
   with
@@ -74,5 +76,5 @@ let () =
      Error.print_location_error l c (sprintf "Unexpected character '%s'"s)
   | Catched_parse_error (s, l, c ) -> 
      Error.print_location_error l c (sprintf "Unexpected token '%s'"s)
-  | Error.RuleError l -> 
-     Error.print_line_error l ("Unexpected rule structure")
+  | Catched_translate_error l -> 
+     Error.print_line_error l ("Unexpected inference")

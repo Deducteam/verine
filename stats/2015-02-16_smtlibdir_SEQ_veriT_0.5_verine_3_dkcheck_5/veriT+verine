@@ -1,0 +1,24 @@
+smt2 file,veriT user time,veriT exit status,verine user time,verine exit status
+bench/SEQ/414641/SEQ032_size3.smt2,0.17,0,2.38,0
+bench/SEQ/414654/SEQ050_size3.smt2,0.14,0,1.70,0
+bench/SEQ/414604/SEQ005_size7.smt2,0.47,0,2.95,124
+bench/SEQ/414649/SEQ038_size9.smt2,0.33,0,2.17,0
+bench/SEQ/414653/SEQ050_size2.smt2,0.00,0,0.06,0
+bench/SEQ/414633/SEQ020_size2.smt2,0.00,0,0.06,0
+bench/SEQ/414630/SEQ019_size4.smt2,0.08,0,0.78,0
+bench/SEQ/414615/SEQ011_size2.smt2,0.01,0,0.07,0
+bench/SEQ/414600/SEQ004_size5.smt2,0.02,0,0.21,0
+bench/SEQ/414601/SEQ004_size6.smt2,0.05,0,0.50,0
+bench/SEQ/414640/SEQ032_size2.smt2,0.00,0,0.03,0
+bench/SEQ/414631/SEQ019_size5.smt2,0.04,0,0.40,0
+bench/SEQ/414621/SEQ015_size2.smt2,0.00,0,0.07,0
+bench/SEQ/414616/SEQ011_size3.smt2,0.04,0,0.41,0
+bench/SEQ/414650/SEQ042_size2.smt2,0.00,0,0.08,0
+bench/SEQ/414628/SEQ018_size7.smt2,0.28,0,2.02,0
+bench/SEQ/414634/SEQ020_size3.smt2,0.04,0,0.44,0
+bench/SEQ/414622/SEQ015_size3.smt2,0.43,0,2.97,124
+bench/SEQ/414624/SEQ017_size4.smt2,0.43,0,2.94,124
+bench/SEQ/414608/SEQ009_size7.smt2,0.26,0,2.99,124
+bench/SEQ/414612/SEQ010_size7.smt2,0.46,0,2.93,124
+bench/SEQ/414625/SEQ017_size5.smt2,0.44,0,2.94,124
+bench/SEQ/414651/SEQ042_size3.smt2,0.11,0,1.37,0

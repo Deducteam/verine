@@ -9,10 +9,3 @@ val print_location_error : int -> int -> string -> unit
 
 (* print error from line and string message *)
 val print_line_error : int -> string -> unit
-
-(* rule structure error with indication of line, raised catching FoundRuleError *)
-exception RuleError of int
-exception FoundRuleError
-
-(* unknown rule needing an axiom declarationr *)
-exception Axiom

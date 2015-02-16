@@ -145,7 +145,7 @@ step:
 	     Trace.rule = Trace.mk_rule $5;
 	     Trace.clauses = $6;
 	     Trace.conclusion = 
-	       List.map (Smt2d.Abstract.tr_term Smt2d.Abstract.empty_vars) $7; } }
+	       List.map (Smt2d.Abstract.mk_term Smt2d.Abstract.empty_vars) $7; } }
   | EOF    { raise End_of_file }
 ;
 
