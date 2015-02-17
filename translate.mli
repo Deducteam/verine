@@ -15,4 +15,4 @@ end
 
 type proof_env = (Smt2d.Dedukti.term * Smt2d.Abstract.term list) PrfEnvMap.t
 
-val translate_step : smt2_env -> proof_env -> Trace.step -> Smt2d.Dedukti.line * proof_env 
+val translate_step : smt2_env -> proof_env -> Proof.step -> Smt2d.Dedukti.line * proof_env 

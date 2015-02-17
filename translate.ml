@@ -127,14 +127,14 @@ let find_split p1s p2s =
     match p1t, p2t with
     | p1 :: p1t', p2 :: p2t' ->
        begin 
-	 match Proof.mk_view p1, Proof.mk_view p2 with 
-	 | Proof.Not p, _ when (Proof.equal p p2) ->
+	 match View.mk_view p1, View.mk_view p2 with 
+	 | View.Not p, _ when (View.equal p p2) ->
 	    true, p, p1h, p1t', p2h, p2t'
-	 | _, Proof.Not p when (Proof.equal p p1) ->
+	 | _, View.Not p when (View.equal p p1) ->
 	    false, p, p1h, p1t', p2h, p2t'
-	 | Proof.App _, _ | Proof.True, _ | Proof.False, _ | Proof.Not _, _
-	 | Proof.Imply _, _ | Proof.And _, _ | Proof.Or _, _ | Proof.Xor _, _
-	 | Proof.Equal _, _ | Proof.Distinct _, _ | Proof.Ite _, _ -> 
+	 | View.App _, _ | View.True, _ | View.False, _ | View.Not _, _
+	 | View.Imply _, _ | View.And _, _ | View.Or _, _ | View.Xor _, _
+	 | View.Equal _, _ | View.Distinct _, _ | View.Ite _, _ -> 
 	    xfind_split p1h p1t (p2 :: p2h) p2t'
        end
     | p1 :: p1t', [] ->
@@ -203,31 +203,31 @@ let translate_rule smt2_env rule rulehyps concs =
       vconcvars
       (List.map (fun p -> Dk.l_proof (Dk.l_not (Tr.tr_term smt2_env.signature p))) concs) prf in
   match rule with
-  | Trace.Input -> raise Axiom
-  | Trace.Eq_reflexive ->
+  | Proof.Input -> raise Axiom
+  | Proof.Eq_reflexive ->
      begin 
        match List.combine concvars concs with
        | [cprf, eq] -> 
-	  let x, _ = Proof.match_equal eq in
+	  let x, _ = View.match_equal eq in
 	  let refl, _ = 
 	    find_reflexive 
 	      (Tr.tr_sort (Smt2d.Get_sort.get_sort smt2_env.signature x))
 	      (Tr.tr_term smt2_env.signature x) n in
 	  useprf (Dk.app2 cprf refl)
        | _ -> raise Translate_error end
-  | Trace.Eq_transitive ->
+  | Proof.Eq_transitive ->
      let hyps, hyp = 
        Smt2d.Util.separate_last (List.combine concvars concs) in
      let dkpxys =
        List.map
   	 (fun (v, t) ->
-	  let p = Proof.match_not t in
-	  let x, y = Proof.match_equal p in
+	  let p = View.match_not t in
+	  let x, y = View.match_equal p in
   	  (v, Tr.tr_term smt2_env.signature p), 
 	  (Tr.tr_term smt2_env.signature x, 
 	   Tr.tr_term smt2_env.signature y)) hyps in
      let cprf, eq = hyp in 
-     let x, y = Proof.match_equal eq in
+     let x, y = View.match_equal eq in
      let cps, dkxys = List.split dkpxys in
      let hs, n1 = mk_newvars "H" cps n in
      let prf, _ = 
@@ -240,16 +240,16 @@ let translate_rule smt2_env rule rulehyps concs =
   	 List.fold_left2
   	   (fun prf h (cprf, p) -> Dk.app2 cprf (Dk.lam h (Dk.l_proof p) prf))
   	   (Dk.app2 cprf prf) hs cps)
-  | Trace.Eq_congruent ->
+  | Proof.Eq_congruent ->
      let (cprf, eq), hyps =
        match List.rev (List.combine concvars concs) with
        | h :: hs -> h, List.rev hs
        | _ -> raise Translate_error in
      let hs, n1 = mk_newvars "H" hyps n in       (* x'j = y'j where forall i exists j,
                                        (xi = x'j and yi = y'i) or (xi = y'j and yi = x'i)*)
-     let t, u = Proof.match_equal eq in
-     let f, xs = Proof.match_app t in
-     let _, ys = Proof.match_app u in
+     let t, u = View.match_equal eq in
+     let f, xs = View.match_app t in
+     let _, ys = View.match_app u in
      let s = Tr.tr_sort (Smt2d.Get_sort.get_sort smt2_env.signature t) in
      let eqprfs, n2 =                                                (* xi = yi *)
        List.fold_left2
@@ -258,11 +258,11 @@ let translate_rule smt2_env rule rulehyps concs =
   	    match hhyps with
   	    | [] -> raise Translate_error
 	    | (h, (_, t)) :: hhyps ->
-	       let p = Proof.match_not t in
-	       let a, b = Proof.match_equal p in
-  	       if (Proof.equal x a) && (Proof.equal y b)
+	       let p = View.match_not t in
+	       let a, b = View.match_equal p in
+  	       if (View.equal x a) && (View.equal y b)
   	       then eqprfs@[h], n
-  	       else if (Proof.equal x b) && (Proof.equal y a)
+  	       else if (View.equal x b) && (View.equal y a)
   	       then
   	    	 let eqprf, newn =
 	    	   find_symmetric
@@ -277,33 +277,33 @@ let translate_rule smt2_env rule rulehyps concs =
 	 (List.map (Tr.tr_term smt2_env.signature) xs) 
 	 (List.map (Tr.tr_term smt2_env.signature) ys) n2 in (* f(xs) = f(ys) *)
      let applylam prf h (cprf, neq) =
-       let eq = Proof.match_not neq in
+       let eq = View.match_not neq in
        Dk.app2 
 	 cprf 
 	 (Dk.lam h (Dk.l_proof (Tr.tr_term smt2_env.signature eq)) prf) in
      useprf (List.fold_left2 applylam (Dk.app2 cprf prf) hs hyps)
-  | Trace.Resolution ->
+  | Proof.Resolution ->
      let hyps =
        List.map
   	 (fun (prf, ps) -> (fun hs -> Dk.app prf hs), ps)
   		  rulehyps in
      useprf ((find_resolution smt2_env.signature hyps n) concvars)
-  | Trace.Unknown_rule _ -> raise Axiom
+  | Proof.Unknown_rule _ -> raise Axiom
 
 (* preuve de I1 => .. => In => mk_clause conclusion *)
 let translate_step smt2_env proof_env step =
-  let name = Tr.tr_string step.Trace.id in
+  let name = Tr.tr_string step.Proof.id in
   let premices =
-    List.map (fun hyp -> PrfEnvMap.find hyp proof_env) step.Trace.clauses in
+    List.map (fun hyp -> PrfEnvMap.find hyp proof_env) step.Proof.clauses in
   let preconclusion = 
-    mk_clause (List.map (Tr.tr_term smt2_env.signature) step.Trace.conclusion) in
+    mk_clause (List.map (Tr.tr_term smt2_env.signature) step.Proof.conclusion) in
   let conclusion = 
     List.fold_left 
       (fun p q -> Dk.l_imply q p)
       preconclusion (List.rev smt2_env.input_term_vars) in
   let line = 
     try
-      let proof = translate_rule smt2_env step.Trace.rule premices step.Trace.conclusion in
+      let proof = translate_rule smt2_env step.Proof.rule premices step.Proof.conclusion in
       Dk.definition
 	(Dk.var name) (Dk.l_proof conclusion)
 	(Dk.lams (smt2_env.input_proof_idents) (List.map Dk.l_proof smt2_env.input_term_vars) proof)
@@ -313,8 +313,8 @@ let translate_step smt2_env proof_env step =
 	(Dk.var name) (Dk.l_proof conclusion) in
   let new_proof_env =
     PrfEnvMap.add
-      step.Trace.id
+      step.Proof.id
       (Dk.app 
 	 (Dk.var name) 
-	 (List.map Dk.var smt2_env.input_proof_idents), step.Trace.conclusion) proof_env in
+	 (List.map Dk.var smt2_env.input_proof_idents), step.Proof.conclusion) proof_env in
   line, new_proof_env

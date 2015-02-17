@@ -16,7 +16,7 @@
 %token CLAUSES CONCLUSION
        
 %start step
-%type <Trace.step> step
+%type <Proof.step> step
 			      
 %%
 
@@ -141,10 +141,10 @@ conclusion:
 
 step:
   | OPEN SYMBOL SYMBOL OPEN SYMBOL clauses conclusion CLOSE CLOSE
-	 { { Trace.id = $3;
-	     Trace.rule = Trace.mk_rule $5;
-	     Trace.clauses = $6;
-	     Trace.conclusion = 
+	 { { Proof.id = $3;
+	     Proof.rule = Proof.mk_rule $5;
+	     Proof.clauses = $6;
+	     Proof.conclusion = 
 	       List.map (Smt2d.Abstract.mk_term Smt2d.Abstract.empty_vars) $7; } }
   | EOF    { raise End_of_file }
 ;
