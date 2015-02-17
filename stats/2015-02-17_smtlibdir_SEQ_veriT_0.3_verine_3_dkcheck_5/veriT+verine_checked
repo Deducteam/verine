@@ -1,0 +1,14 @@
+smt2 file,veriT user time,veriT exit status,verine user time,verine exit status
+bench/SEQ/414653/SEQ050_size2.smt2,0.01,0,0.10,0
+bench/SEQ/414600/SEQ004_size5.smt2,0.03,0,0.29,0
+bench/SEQ/414615/SEQ011_size2.smt2,0.01,0,0.10,0
+bench/SEQ/414621/SEQ015_size2.smt2,0.01,0,0.12,0
+bench/SEQ/414633/SEQ020_size2.smt2,0.02,0,0.12,0
+bench/SEQ/414631/SEQ019_size5.smt2,0.08,0,0.68,0
+bench/SEQ/414601/SEQ004_size6.smt2,0.09,0,0.77,0
+bench/SEQ/414640/SEQ032_size2.smt2,0.00,0,0.07,0
+bench/SEQ/414634/SEQ020_size3.smt2,0.07,0,0.62,0
+bench/SEQ/414650/SEQ042_size2.smt2,0.01,0,0.16,0
+bench/SEQ/414630/SEQ019_size4.smt2,0.12,0,1.33,0
+bench/SEQ/414651/SEQ042_size3.smt2,0.19,0,2.54,0
+bench/SEQ/414616/SEQ011_size3.smt2,0.08,0,0.69,0
