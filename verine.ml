@@ -8,7 +8,7 @@ let umsg = "Usage: verine <file.smt2> <file.proof>"
 
 let files = ref []
 
-let argspec = ["-debug", Arg.Set Debug.debugmode, "debug mode"]
+let argspec = ["-debug", Arg.Set Debug.debug_mode, "debug mode"]
 
 let process_proof signature assertions assertion_vars lexbuf =
   try

@@ -1,6 +1,0 @@
-(set-logic QF_UFLIA)
-(declare-fun x () Int)
-(declare-fun y () Int)
-(declare-fun z () Int)
-(assert (and (= x y) (and (= y z) (not (= x z)))))
-(check-sat)

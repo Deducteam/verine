@@ -3,10 +3,9 @@
 * A faire
  - ajouter un warning pour les règles non reconnues
  - problème du cas ite pour eq_congruent ?
- - traduire intput
+ - traduire input
  - relire :
-debug.ml      error.ml    scope.ml    trace.ml   
-translate.ml  Makefile    proof.ml    verine.ml
+scope.ml    proof.ml    translate.ml  view.ml    verine.ml
 
 * Commmentaires
  - il existe un ordre strict sur les termes dans veriT 

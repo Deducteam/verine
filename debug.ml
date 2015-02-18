@@ -1,28 +1,21 @@
-let debugmode = ref false
+(* remains false unless -debug option is called *)
+let debug_mode = ref false
 
-let printterm t = 
+(* apply_if_debug f applies f only in debug mode, and flushes stderr afterwards *)
+let apply_if_debug f = 
+  if !debug_mode then ( f; Printf.eprintf "%!" )
+
+(* print a dedukti term on stderr *)
+let print_term t =
   Smt2d.Dedukti.print_term stderr t
 	 
-let printlist ts = 
-  let xeprintdks ts =
+(* print a dedukti list on stderr *)
+let print_terms ts = 
+  Printf.eprintf "[ ";
+  begin 
     match ts with
     | [] -> ()
-    | t :: ts -> 
-       printterm t; 
-       List.iter 
-	 (fun t -> Printf.eprintf " | "; printterm t) ts in
-  Printf.eprintf "[ ";
-  xeprintdks ts;
-  Printf.eprintf " ]"
-  
-let printcontext s1 ts s2 = 
-  Printf.eprintf "%s" s1; printlist ts; Printf.eprintf "%s" s2
+    | t :: ts ->
+       print_term t; List.iter (fun t -> Printf.eprintf " | "; print_term t) ts end;
+  Printf.eprintf " ]";
 
-let ddo f = 
-  if !debugmode then ( f; Printf.eprintf "%!" )
-
-let dprintterm t = ddo (printterm t)
-    
-let dprintlist ts = ddo (printlist ts)
-      
-let dprintcontext s1 ts s2 = ddo (printcontext s1 ts s2)

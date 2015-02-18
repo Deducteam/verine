@@ -1,14 +1,11 @@
 (* remains false unless -debug option is called *)
-val debugmode : bool ref
+val debug_mode : bool ref
 
-(* ddo f applies f only in debug mode, and flushes stderr afterwards *)
-val ddo : unit -> unit
+(* apply_if_debug f applies f only in debug mode, and flushes stderr afterwards *)
+val apply_if_debug : unit -> unit
 
-(* ddo print a dedukti term on stderr *)
-val dprintterm :  Smt2d.Dedukti.term -> unit
+(* print a dedukti term on stderr *)
+val print_term :  Smt2d.Dedukti.term -> unit
 
-(* ddo print a dedukti list on stderr *)
-val dprintlist :  Smt2d.Dedukti.term list -> unit
-
-(* ddo print a dedukti list between two strings on stderr *)
-val dprintcontext : string -> Smt2d.Dedukti.term list -> string -> unit
+(* print a dedukti list on stderr *)
+val print_terms :  Smt2d.Dedukti.term list -> unit
