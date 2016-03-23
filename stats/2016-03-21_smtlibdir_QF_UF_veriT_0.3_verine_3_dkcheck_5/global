@@ -1,0 +1,4 @@
+bench directory: QF_UF
+veriT timeout: 0.3
+verine timeout: 3
+dkcheck timeout: 5

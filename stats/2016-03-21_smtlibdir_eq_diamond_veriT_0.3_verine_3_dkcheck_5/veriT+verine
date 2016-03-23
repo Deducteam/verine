@@ -1,0 +1,14 @@
+smt2 file,veriT user time,veriT exit status,verine user time,verine exit status
+bench/eq_diamond/408009/eq_diamond1.smt2,0.00,0,0.00,0
+bench/eq_diamond/408010/eq_diamond10.smt2,0.03,0,0.38,0
+bench/eq_diamond/408021/eq_diamond2.smt2,0.00,0,0.00,0
+bench/eq_diamond/408014/eq_diamond13.smt2,0.28,0,2.93,124
+bench/eq_diamond/408043/eq_diamond4.smt2,0.00,0,0.00,0
+bench/eq_diamond/408076/eq_diamond7.smt2,0.00,0,0.03,0
+bench/eq_diamond/408098/eq_diamond9.smt2,0.01,0,0.17,0
+bench/eq_diamond/408013/eq_diamond12.smt2,0.12,0,1.75,0
+bench/eq_diamond/408065/eq_diamond6.smt2,0.00,0,0.01,0
+bench/eq_diamond/408012/eq_diamond11.smt2,0.06,0,0.80,0
+bench/eq_diamond/408087/eq_diamond8.smt2,0.00,0,0.08,0
+bench/eq_diamond/408032/eq_diamond3.smt2,0.00,0,0.00,0
+bench/eq_diamond/408054/eq_diamond5.smt2,0.00,0,0.00,0

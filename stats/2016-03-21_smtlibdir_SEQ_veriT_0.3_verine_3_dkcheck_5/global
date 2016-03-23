@@ -1,0 +1,14 @@
+bench directory: SEQ
+veriT timeout: 0.3
+verine timeout: 3
+dkcheck timeout: 5
+number of tested .smt2 files: 56
+number of proved .smt2 files: 21
+number of translation failures before timout: 0
+number of translated .proof files: 20
+number of checking failures before timout: 0
+number of checked .dk files: 19
+proportion of translation failures before timout: 0%
+proportion of translated .proof files: 95%
+propertion of checking failures before timout: 0%
+proportion of checked .dk files: 95%

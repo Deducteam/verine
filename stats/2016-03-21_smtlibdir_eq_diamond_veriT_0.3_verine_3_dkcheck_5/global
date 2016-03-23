@@ -1,0 +1,14 @@
+bench directory: eq_diamond
+veriT timeout: 0.3
+verine timeout: 3
+dkcheck timeout: 5
+number of tested .smt2 files: 100
+number of proved .smt2 files: 13
+number of translation failures before timout: 0
+number of translated .proof files: 12
+number of checking failures before timout: 0
+number of checked .dk files: 11
+proportion of translation failures before timout: 0%
+proportion of translated .proof files: 92%
+propertion of checking failures before timout: 0%
+proportion of checked .dk files: 91%
